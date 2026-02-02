@@ -1,4 +1,4 @@
-/// Main dashboard screen with progress overview - Uses Flask API
+/// Main dashboard screen with progress overview - Uses Local Data
 library;
 
 import 'package:flutter/material.dart';
@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
-import '../../services/api_service.dart';
+import '../../services/roadmap_service.dart';
 import '../../models/user_model.dart';
 import '../../data/job_roles_data.dart';
 import '../../widgets/progress_card.dart';
@@ -26,7 +26,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   UserModel? _user;
-  Map<String, dynamic>? _analysisData;
+  SkillGapResult? _analysisResult;
   bool _isLoading = true;
 
   @override
@@ -43,24 +43,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (authService.currentUser != null) {
         final user = await firestoreService.getUser(authService.currentUser!.uid);
         
-        Map<String, dynamic>? analysis;
+        SkillGapResult? analysis;
         if (user != null && user.selectedJobRole != null && user.skills.isNotEmpty) {
-          // Use Flask API for analysis
+          // Use local RoadmapService for analysis
           try {
-            analysis = await ApiService.analyzeGap(
+            analysis = RoadmapService.analyzeSkillGap(
               userSkills: user.skills,
-              targetRole: user.selectedJobRole!,
+              targetRoleId: user.selectedJobRole!,
             );
+            debugPrint('Dashboard - Local analysis: ${analysis.matchPercentage}% match');
           } catch (e) {
-            // If API fails, continue without analysis
-            debugPrint('API Error: $e');
+            debugPrint('Analysis Error: $e');
           }
         }
         
         if (mounted) {
           setState(() {
             _user = user;
-            _analysisData = analysis;
+            _analysisResult = analysis;
             _isLoading = false;
           });
         }
@@ -92,7 +92,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       children: [
                         _buildHeader(),
                         const SizedBox(height: 24),
-                        if (_analysisData != null) ...[
+                        if (_analysisResult != null) ...[
                           _buildProgressCard(),
                           const SizedBox(height: 16),
                           _buildStatsRow(),
@@ -188,7 +188,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildProgressCard() {
     final role = JobRolesData.getRoleById(_user?.selectedJobRole ?? '');
-    final matchPercentage = _analysisData?['match_percentage'] ?? 0;
+    final matchPercentage = _analysisResult?.matchPercentage ?? 0;
     
     return ProgressCard(
       title: role?.name ?? 'Target Role',
@@ -210,8 +210,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildStatsRow() {
-    final proficient = (_analysisData?['proficient_skills'] as List?)?.length ?? 0;
-    final missing = (_analysisData?['missing_skills'] as List?)?.length ?? 0;
+    final proficient = _analysisResult?.proficientSkills.length ?? 0;
+    final missing = _analysisResult?.missingSkills.length ?? 0;
     
     return Row(
       children: [
@@ -261,7 +261,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           color: AppTheme.primaryColor,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const RoadmapScreen()),
+            MaterialPageRoute(builder: (_) => RoadmapScreen(
+              missingSkills: _analysisResult?.missingSkills ?? [],
+              skillsToImprove: _analysisResult?.skillsToImprove ?? [],
+            )),
           ),
         ),
         const SizedBox(height: 12),
@@ -291,17 +294,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildSkillsOverview() {
-    if (_analysisData == null) return const SizedBox.shrink();
+    if (_analysisResult == null) return const SizedBox.shrink();
 
-    final proficientSkills = (_analysisData?['proficient_skills'] as List<dynamic>? ?? [])
+    final proficientSkills = _analysisResult!.proficientSkills
         .map((s) => s['skill_name'] as String? ?? '')
         .where((name) => name.isNotEmpty)
         .toList();
-    final skillsToImprove = (_analysisData?['skills_to_improve'] as List<dynamic>? ?? [])
+    final skillsToImprove = _analysisResult!.skillsToImprove
         .map((s) => s['skill_name'] as String? ?? '')
         .where((name) => name.isNotEmpty)
         .toList();
-    final missingSkills = (_analysisData?['missing_skills'] as List<dynamic>? ?? [])
+    final missingSkills = _analysisResult!.missingSkills
         .map((s) => s['skill_name'] as String? ?? '')
         .where((name) => name.isNotEmpty)
         .toList();

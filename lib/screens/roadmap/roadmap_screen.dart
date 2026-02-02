@@ -1,10 +1,10 @@
-/// Personalized roadmap screen - Uses Flask Backend API
+/// Personalized roadmap screen - Uses Local Flutter Data
 library;
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../config/theme.dart';
-import '../../services/api_service.dart';
+import '../../services/roadmap_service.dart';
 
 class RoadmapScreen extends StatefulWidget {
   final List<dynamic>? missingSkills;
@@ -21,7 +21,7 @@ class RoadmapScreen extends StatefulWidget {
 }
 
 class _RoadmapScreenState extends State<RoadmapScreen> {
-  Map<String, dynamic>? _roadmapData;
+  RoadmapResult? _roadmapData;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -31,44 +31,55 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     _loadRoadmap();
   }
 
-  Future<void> _loadRoadmap() async {
+  void _loadRoadmap() {
     try {
-      // Debug: Show raw widget data
-      debugPrint('RoadmapScreen - Raw widget.missingSkills: ${widget.missingSkills}');
-      debugPrint('RoadmapScreen - Raw widget.skillsToImprove: ${widget.skillsToImprove}');
-      debugPrint('RoadmapScreen - missingSkills length: ${widget.missingSkills?.length ?? 0}');
-      debugPrint('RoadmapScreen - skillsToImprove length: ${widget.skillsToImprove?.length ?? 0}');
-      
-      // If we have data, show first item structure
-      if (widget.missingSkills != null && widget.missingSkills!.isNotEmpty) {
-        debugPrint('RoadmapScreen - First missing skill: ${widget.missingSkills![0]}');
-        debugPrint('RoadmapScreen - First missing skill type: ${widget.missingSkills![0].runtimeType}');
+      debugPrint('RoadmapScreen - Loading with local service');
+      debugPrint('RoadmapScreen - missingSkills: ${widget.missingSkills?.length ?? 0}');
+      debugPrint('RoadmapScreen - skillsToImprove: ${widget.skillsToImprove?.length ?? 0}');
+
+      // Convert incoming data to proper format
+      final missingSkillsList = <Map<String, dynamic>>[];
+      final skillsToImproveList = <Map<String, dynamic>>[];
+
+      // Process missing skills
+      if (widget.missingSkills != null) {
+        for (final skill in widget.missingSkills!) {
+          if (skill is Map) {
+            missingSkillsList.add({
+              'skill_id': skill['skill_id']?.toString() ?? '',
+              'skill_name': skill['skill_name']?.toString() ?? '',
+              'category': skill['category']?.toString() ?? '',
+              'required_level': skill['required_level']?.toString() ?? 'intermediate',
+            });
+          }
+        }
       }
-      
-      // Extract skill IDs from the passed data
-      final missingSkillIds = widget.missingSkills
-          ?.map((s) => s['skill_id']?.toString() ?? '')
-          .where((id) => id.isNotEmpty)
-          .toList() ?? [];
-      
-      final skillsToImprove = widget.skillsToImprove
-          ?.map((s) => <String, dynamic>{
-                'skill_id': s['skill_id']?.toString() ?? '',
-                'current_level': s['current_level']?.toString() ?? 'beginner',
-              })
-          .where((m) => (m['skill_id'] as String).isNotEmpty)
-          .toList() ?? [];
 
-      debugPrint('RoadmapScreen - Extracted missingSkillIds: $missingSkillIds');
-      debugPrint('RoadmapScreen - Extracted skillsToImprove: $skillsToImprove');
+      // Process skills to improve
+      if (widget.skillsToImprove != null) {
+        for (final skill in widget.skillsToImprove!) {
+          if (skill is Map) {
+            skillsToImproveList.add({
+              'skill_id': skill['skill_id']?.toString() ?? '',
+              'skill_name': skill['skill_name']?.toString() ?? '',
+              'category': skill['category']?.toString() ?? '',
+              'current_level': skill['current_level']?.toString() ?? 'beginner',
+              'required_level': skill['required_level']?.toString() ?? 'intermediate',
+            });
+          }
+        }
+      }
 
-      // Call Flask Backend API for roadmap generation
-      final roadmap = await ApiService.generateRoadmap(
-        missingSkills: missingSkillIds,
-        skillsToImprove: skillsToImprove,
+      debugPrint('RoadmapScreen - Processed missing: $missingSkillsList');
+      debugPrint('RoadmapScreen - Processed toImprove: $skillsToImproveList');
+
+      // Generate roadmap using local service
+      final roadmap = RoadmapService.generateRoadmap(
+        missingSkills: missingSkillsList,
+        skillsToImprove: skillsToImproveList,
       );
 
-      debugPrint('RoadmapScreen - Roadmap data: $roadmap');
+      debugPrint('RoadmapScreen - Generated ${roadmap.totalSkills} steps');
 
       if (mounted) {
         setState(() {
@@ -143,10 +154,10 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
   }
 
   Widget _buildContent() {
-    final roadmap = _roadmapData?['roadmap'] as List<dynamic>? ?? [];
-    final totalSkills = _roadmapData?['total_skills'] ?? 0;
-    final totalHours = _roadmapData?['total_estimated_hours'] ?? 0;
-    final estimatedWeeks = _roadmapData?['estimated_weeks'] ?? 1;
+    final roadmap = _roadmapData?.roadmap ?? [];
+    final totalSkills = _roadmapData?.totalSkills ?? 0;
+    final totalHours = _roadmapData?.totalEstimatedHours ?? 0;
+    final estimatedWeeks = _roadmapData?.estimatedWeeks ?? 1;
 
     return Column(
       children: [
@@ -227,19 +238,19 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
             ),
           ),
           const SizedBox(width: 16),
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Your Personalized Path',
                   style: TextStyle(
                     color: Colors.white70,
                     fontSize: 14,
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
+                SizedBox(height: 4),
+                Text(
                   'Learning Roadmap',
                   style: TextStyle(
                     color: Colors.white,
@@ -364,7 +375,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     );
   }
 
-  Widget _buildTimeline(List<dynamic> roadmap) {
+  Widget _buildTimeline(List<RoadmapStep> roadmap) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -380,7 +391,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
         const SizedBox(height: 16),
         ...roadmap.asMap().entries.map((entry) {
           final index = entry.key;
-          final step = entry.value as Map<String, dynamic>;
+          final step = entry.value;
           final isLast = index == roadmap.length - 1;
           return _buildTimelineItem(step, isLast);
         }),
@@ -388,17 +399,8 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     );
   }
 
-  Widget _buildTimelineItem(Map<String, dynamic> step, bool isLast) {
-    final stepNumber = step['step'] ?? 1;
-    final skillName = step['skill_name'] ?? '';
-    final category = step['category'] ?? '';
-    final status = step['status'] ?? 'New Skill';
-    final targetLevel = step['target_level'] ?? 'intermediate';
-    final currentLevel = step['current_level'];
-    final estimatedHours = step['estimated_hours'] ?? 0;
-    final resources = step['resources'] as List<dynamic>? ?? [];
-
-    final isNew = status == 'New Skill';
+  Widget _buildTimelineItem(RoadmapStep step, bool isLast) {
+    final isNew = step.status == 'New Skill';
     final color = isNew ? AppTheme.errorColor : AppTheme.warningColor;
 
     return Row(
@@ -417,7 +419,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
               ),
               child: Center(
                 child: Text(
-                  '$stepNumber',
+                  '${step.step}',
                   style: TextStyle(
                     color: color,
                     fontWeight: FontWeight.bold,
@@ -428,7 +430,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
             if (!isLast)
               Container(
                 width: 2,
-                height: 150 + (resources.length * 50).toDouble(),
+                height: 150 + (step.resources.length * 50).toDouble(),
                 color: Colors.grey.shade300,
               ),
           ],
@@ -452,7 +454,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        skillName,
+                        step.skillName,
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
@@ -477,39 +479,50 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                // Meta info
-                Row(
+                // Meta info - using Wrap to prevent overflow
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 4,
                   children: [
-                    Icon(Icons.category_outlined, size: 14, color: AppTheme.textSecondary),
-                    const SizedBox(width: 4),
-                    Text(
-                      category,
-                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.category_outlined, size: 14, color: AppTheme.textSecondary),
+                        const SizedBox(width: 4),
+                        Text(
+                          step.category,
+                          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 16),
-                    Icon(Icons.flag_outlined, size: 14, color: AppTheme.textSecondary),
-                    const SizedBox(width: 4),
-                    Text(
-                      currentLevel != null
-                          ? '$currentLevel → $targetLevel'
-                          : 'Target: $targetLevel',
-                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.flag_outlined, size: 14, color: AppTheme.textSecondary),
+                        const SizedBox(width: 4),
+                        Text(
+                          step.currentLevel != null
+                              ? '${step.currentLevel} → ${step.targetLevel}'
+                              : 'Target: ${step.targetLevel}',
+                          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(Icons.access_time, size: 14, color: AppTheme.textSecondary),
-                    const SizedBox(width: 4),
-                    Text(
-                      '~$estimatedHours hours',
-                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.access_time, size: 14, color: AppTheme.textSecondary),
+                        const SizedBox(width: 4),
+                        Text(
+                          '~${step.estimatedHours} hours',
+                          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                        ),
+                      ],
                     ),
                   ],
                 ),
                 // Resources
-                if (resources.isNotEmpty) ...[
+                if (step.resources.isNotEmpty) ...[
                   const Divider(height: 24),
                   Text(
                     'Recommended Resources:',
@@ -520,7 +533,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...resources.map((res) => _buildResourceItem(res as Map<String, dynamic>)),
+                  ...step.resources.map((res) => _buildResourceItem(res)),
                 ],
               ],
             ),
@@ -537,7 +550,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     final hours = resource['hours'] ?? 0;
 
     IconData typeIcon;
-    switch (type.toLowerCase()) {
+    switch (type.toString().toLowerCase()) {
       case 'video':
         typeIcon = Icons.play_circle_outline;
         break;
@@ -553,12 +566,15 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
       case 'tutorial':
         typeIcon = Icons.article_outlined;
         break;
+      case 'practice':
+        typeIcon = Icons.code;
+        break;
       default:
         typeIcon = Icons.link;
     }
 
     return InkWell(
-      onTap: url.isNotEmpty ? () => _launchUrl(url) : null,
+      onTap: url.toString().isNotEmpty ? () => _launchUrl(url.toString()) : null,
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(10),
@@ -575,7 +591,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    name,
+                    name.toString(),
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,

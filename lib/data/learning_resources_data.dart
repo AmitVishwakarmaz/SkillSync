@@ -544,7 +544,7 @@ class LearningResourcesData {
         estimatedHours: 100,
       ),
       LearningResource(
-        name: 'Striver\\'s SDE Sheet',
+        name: "Striver's SDE Sheet",
         type: 'Tutorial',
         url: 'https://takeuforward.org/interviews/strivers-sde-sheet-top-coding-interview-problems/',
         difficulty: 'intermediate',
