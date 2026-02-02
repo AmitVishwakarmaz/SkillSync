@@ -10,6 +10,9 @@ import '../../models/skill_model.dart';
 import '../../data/skills_data.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/skill_chip.dart';
+import '../../widgets/ocr_import_button.dart';
+import '../../models/ocr_result_model.dart';
+import '../../data/skills_data.dart' show SkillsData;
 import 'job_role_selection_screen.dart';
 
 class SkillAssessmentScreen extends StatefulWidget {
@@ -24,6 +27,18 @@ class _SkillAssessmentScreenState extends State<SkillAssessmentScreen> {
   SkillCategory _currentCategory = SkillCategory.programming;
   bool _isLoading = false;
 
+  /// Handle OCR results by auto-selecting matched skills
+  void _handleOcrResult(OcrResult result) {
+    setState(() {
+      for (final skill in result.extractedSkills) {
+        // Only add if not already selected
+        if (!_selectedSkills.containsKey(skill.id)) {
+          _selectedSkills[skill.id] = SkillLevel.beginner;
+        }
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -33,7 +48,7 @@ class _SkillAssessmentScreenState extends State<SkillAssessmentScreen> {
   Future<void> _loadExistingSkills() async {
     final authService = context.read<AuthService>();
     final firestoreService = context.read<FirestoreService>();
-    
+
     if (authService.currentUser != null) {
       final user = await firestoreService.getUser(authService.currentUser!.uid);
       if (user != null && user.skills.isNotEmpty && mounted) {
@@ -62,12 +77,12 @@ class _SkillAssessmentScreenState extends State<SkillAssessmentScreen> {
     try {
       final authService = context.read<AuthService>();
       final firestoreService = context.read<FirestoreService>();
-      
+
       if (authService.currentUser != null) {
         final skillsMap = _selectedSkills.map(
           (key, value) => MapEntry(key, value.name),
         );
-        
+
         await firestoreService.saveUserSkills(
           authService.currentUser!.uid,
           skillsMap,
@@ -100,9 +115,7 @@ class _SkillAssessmentScreenState extends State<SkillAssessmentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
-        ),
+        decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
         child: SafeArea(
           child: Column(
             children: [
@@ -155,6 +168,8 @@ class _SkillAssessmentScreenState extends State<SkillAssessmentScreen> {
             ),
           ),
           const Spacer(),
+          OcrImportButton(iconOnly: true, onResult: _handleOcrResult),
+          const SizedBox(width: 8),
           Text(
             '${_selectedSkills.length} skills selected',
             style: TextStyle(
@@ -176,9 +191,7 @@ class _SkillAssessmentScreenState extends State<SkillAssessmentScreen> {
             margin: EdgeInsets.only(right: index < 3 ? 8 : 0),
             height: 4,
             decoration: BoxDecoration(
-              color: isActive 
-                  ? AppTheme.primaryColor 
-                  : Colors.grey.shade300,
+              color: isActive ? AppTheme.primaryColor : Colors.grey.shade300,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -198,9 +211,9 @@ class _SkillAssessmentScreenState extends State<SkillAssessmentScreen> {
         const SizedBox(height: 8),
         Text(
           'Choose skills you have and rate your proficiency level',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: AppTheme.textSecondary,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary),
         ),
       ],
     );
@@ -217,7 +230,7 @@ class _SkillAssessmentScreenState extends State<SkillAssessmentScreen> {
             final skill = SkillsData.getSkillById(id);
             return skill?.category == category;
           }).length;
-          
+
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: ChoiceChip(
@@ -228,9 +241,14 @@ class _SkillAssessmentScreenState extends State<SkillAssessmentScreen> {
                   if (selectedCount > 0) ...[
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
-                        color: isSelected ? Colors.white : AppTheme.primaryColor,
+                        color: isSelected
+                            ? Colors.white
+                            : AppTheme.primaryColor,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
@@ -238,7 +256,9 @@ class _SkillAssessmentScreenState extends State<SkillAssessmentScreen> {
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? AppTheme.primaryColor : Colors.white,
+                          color: isSelected
+                              ? AppTheme.primaryColor
+                              : Colors.white,
                         ),
                       ),
                     ),
@@ -261,7 +281,7 @@ class _SkillAssessmentScreenState extends State<SkillAssessmentScreen> {
 
   Widget _buildSkillsList() {
     final skills = SkillsData.getSkillsByCategory(_currentCategory);
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

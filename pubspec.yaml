@@ -44,9 +44,9 @@ dependencies:
   google_fonts: ^6.2.1
   cupertino_icons: ^1.0.8
 
-  # HTTP & URL
-  http: ^1.2.0
-  url_launcher: ^6.2.5
+  # OCR & Image Picking
+  google_mlkit_text_recognition: ^0.14.0
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:
