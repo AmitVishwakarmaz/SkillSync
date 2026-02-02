@@ -1,4 +1,4 @@
-/// Skill gap analysis screen showing comparison and recommendations
+/// Skill gap analysis screen - Uses Flask Backend API
 library;
 
 import 'package:flutter/material.dart';
@@ -6,9 +6,10 @@ import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
-import '../../models/job_role_model.dart';
+import '../../services/api_service.dart';
 import '../../widgets/custom_button.dart';
 import '../dashboard/dashboard_screen.dart';
+import '../roadmap/roadmap_screen.dart';
 
 class SkillGapScreen extends StatefulWidget {
   const SkillGapScreen({super.key});
@@ -18,8 +19,9 @@ class SkillGapScreen extends StatefulWidget {
 }
 
 class _SkillGapScreenState extends State<SkillGapScreen> {
-  SkillGapAnalysis? _analysis;
+  Map<String, dynamic>? _analysisData;
   bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -34,26 +36,35 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
       
       if (authService.currentUser != null) {
         final user = await firestoreService.getUser(authService.currentUser!.uid);
-        if (user != null && user.selectedJobRole != null && mounted) {
-          final analysis = firestoreService.analyzeSkillGap(
-            user.skills,
-            user.selectedJobRole!,
+        
+        if (user != null && user.selectedJobRole != null) {
+          // Call Flask Backend API for analysis
+          final analysis = await ApiService.analyzeGap(
+            userSkills: user.skills,
+            targetRole: user.selectedJobRole!,
           );
-          setState(() {
-            _analysis = analysis;
-            _isLoading = false;
-          });
+          
+          if (mounted) {
+            setState(() {
+              _analysisData = analysis;
+              _isLoading = false;
+            });
+          }
+        } else {
+          if (mounted) {
+            setState(() {
+              _errorMessage = 'Please complete your profile first';
+              _isLoading = false;
+            });
+          }
         }
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading analysis: $e'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+        setState(() {
+          _errorMessage = 'Error: $e';
+          _isLoading = false;
+        });
       }
     }
   }
@@ -68,7 +79,7 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
         child: SafeArea(
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
-              : _analysis == null
+              : _errorMessage != null
                   ? _buildError()
                   : _buildContent(),
         ),
@@ -78,26 +89,39 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
 
   Widget _buildError() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, size: 64, color: AppTheme.errorColor),
-          const SizedBox(height: 16),
-          const Text('Unable to load analysis'),
-          const SizedBox(height: 16),
-          CustomButton(
-            text: 'Go to Dashboard',
-            onPressed: () => Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const DashboardScreen()),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: AppTheme.errorColor),
+            const SizedBox(height: 16),
+            Text(
+              _errorMessage ?? 'Unable to load analysis',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 16),
             ),
-          ),
-        ],
+            const SizedBox(height: 24),
+            CustomButton(
+              text: 'Go to Dashboard',
+              onPressed: () => Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const DashboardScreen()),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildContent() {
+    final targetRole = _analysisData?['target_role'] ?? {};
+    final matchPercentage = _analysisData?['match_percentage'] ?? 0;
+    final proficientSkills = _analysisData?['proficient_skills'] ?? [];
+    final skillsToImprove = _analysisData?['skills_to_improve'] ?? [];
+    final missingSkills = _analysisData?['missing_skills'] ?? [];
+
     return Column(
       children: [
         _buildAppBar(),
@@ -109,44 +133,62 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
               children: [
                 _buildProgressIndicator(),
                 const SizedBox(height: 24),
-                _buildHeader(),
+                _buildHeader(targetRole),
                 const SizedBox(height: 24),
-                _buildScoreCard(),
+                _buildScoreCard(targetRole, matchPercentage),
                 const SizedBox(height: 16),
-                if (_analysis!.proficientSkills.isNotEmpty) ...[
+                if (proficientSkills.isNotEmpty) ...[
                   _buildSkillSection(
                     'Proficient Skills',
                     'Skills you already have',
                     Icons.check_circle,
                     AppTheme.accentColor,
-                    _analysis!.proficientSkills,
+                    proficientSkills,
+                    isProficient: true,
                   ),
                   const SizedBox(height: 16),
                 ],
-                if (_analysis!.skillsToImprove.isNotEmpty) ...[
+                if (skillsToImprove.isNotEmpty) ...[
                   _buildSkillSection(
                     'Skills to Improve',
                     'Upgrade your proficiency level',
                     Icons.trending_up,
                     AppTheme.warningColor,
-                    _analysis!.skillsToImprove,
+                    skillsToImprove,
                   ),
                   const SizedBox(height: 16),
                 ],
-                if (_analysis!.missingSkills.isNotEmpty) ...[
+                if (missingSkills.isNotEmpty) ...[
                   _buildSkillSection(
                     'Missing Skills',
                     'Skills you need to learn',
                     Icons.add_circle,
                     AppTheme.errorColor,
-                    _analysis!.missingSkills,
+                    missingSkills,
+                    isMissing: true,
                   ),
                   const SizedBox(height: 16),
                 ],
                 const SizedBox(height: 24),
                 CustomButton(
+                  text: 'View Learning Roadmap',
+                  icon: Icons.map_outlined,
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => RoadmapScreen(
+                        missingSkills: missingSkills,
+                        skillsToImprove: skillsToImprove,
+                      ),
+                    ),
+                  ),
+                  width: double.infinity,
+                ),
+                const SizedBox(height: 12),
+                CustomButton(
                   text: 'Go to Dashboard',
                   icon: Icons.dashboard,
+                  isOutlined: true,
                   onPressed: () => Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (_) => const DashboardScreen()),
@@ -197,7 +239,7 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(Map<String, dynamic> role) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -207,7 +249,7 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Your skills vs ${_analysis!.targetRole.name} requirements',
+          'Your skills vs ${role['name'] ?? 'Job Role'} requirements',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             color: AppTheme.textSecondary,
           ),
@@ -216,8 +258,7 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
     );
   }
 
-  Widget _buildScoreCard() {
-    final percentage = _analysis!.matchPercentage;
+  Widget _buildScoreCard(Map<String, dynamic> role, int percentage) {
     final color = percentage >= 70 
         ? AppTheme.accentColor 
         : percentage >= 40 
@@ -247,12 +288,12 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                _analysis!.targetRole.icon,
+                role['icon'] ?? '💼',
                 style: const TextStyle(fontSize: 32),
               ),
               const SizedBox(width: 12),
               Text(
-                _analysis!.targetRole.name,
+                role['name'] ?? 'Target Role',
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -328,8 +369,10 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
     String subtitle,
     IconData icon,
     Color color,
-    List<SkillGap> skills,
-  ) {
+    List<dynamic> skills, {
+    bool isProficient = false,
+    bool isMissing = false,
+  }) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -390,13 +433,27 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          ...skills.map((gap) => _buildSkillGapItem(gap, color)),
+          ...skills.map((skill) => _buildSkillItem(skill, color, isProficient, isMissing)),
         ],
       ),
     );
   }
 
-  Widget _buildSkillGapItem(SkillGap gap, Color color) {
+  Widget _buildSkillItem(Map<String, dynamic> skill, Color color, bool isProficient, bool isMissing) {
+    final skillName = skill['skill_name'] ?? '';
+    final currentLevel = skill['current_level'] ?? '';
+    final requiredLevel = skill['required_level'] ?? 'intermediate';
+    final category = skill['category'] ?? '';
+
+    String description;
+    if (isMissing) {
+      description = 'Required: $requiredLevel • Category: $category';
+    } else if (isProficient) {
+      description = 'Level: $currentLevel • $category';
+    } else {
+      description = '$currentLevel → $requiredLevel • $category';
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -411,7 +468,7 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  gap.skillName,
+                  skillName,
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
@@ -419,7 +476,7 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  gap.gapDescription,
+                  description,
                   style: TextStyle(
                     fontSize: 12,
                     color: AppTheme.textSecondary,
@@ -428,7 +485,7 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
               ],
             ),
           ),
-          if (!gap.isMissing && gap.gapSize <= 0)
+          if (isProficient)
             Icon(Icons.check_circle, color: color, size: 20),
         ],
       ),

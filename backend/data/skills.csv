@@ -1,0 +1,31 @@
+skill_id,skill_name,category,description
+python,Python,Programming,General-purpose programming language popular for data science and backend
+java,Java,Programming,Object-oriented language for enterprise and Android development
+javascript,JavaScript,Programming,Core language for web development
+cpp,C++,Programming,System-level programming and competitive coding
+html,HTML,Web Development,Markup language for web pages
+css,CSS,Web Development,Styling language for web pages
+react,React,Web Development,JavaScript library for building user interfaces
+nodejs,Node.js,Web Development,JavaScript runtime for backend development
+sql,SQL,Database,Query language for relational databases
+mongodb,MongoDB,Database,NoSQL document database
+git,Git,Tools,Version control system
+docker,Docker,Tools,Containerization platform
+aws,AWS,Cloud,Amazon Web Services cloud platform
+gcp,GCP,Cloud,Google Cloud Platform services
+machine_learning,Machine Learning,AI/ML,Building predictive models and algorithms
+deep_learning,Deep Learning,AI/ML,Neural networks and AI systems
+tensorflow,TensorFlow,AI/ML,Machine learning framework by Google
+pandas,Pandas,Data Science,Data manipulation library for Python
+numpy,NumPy,Data Science,Numerical computing library for Python
+data_viz,Data Visualization,Data Science,Creating charts and visual representations
+dsa,DSA,Core CS,Data Structures and Algorithms
+system_design,System Design,Core CS,Designing scalable software systems
+oop,OOP,Core CS,Object Oriented Programming concepts
+communication,Communication,Soft Skills,Professional communication skills
+teamwork,Teamwork,Soft Skills,Collaboration and team management
+problem_solving,Problem Solving,Soft Skills,Analytical and critical thinking
+agile,Agile,Methodology,Agile development methodology
+rest_api,REST API,Development,RESTful API design and development
+flask,Flask,Web Development,Python web microframework
+django,Django,Web Development,Python web framework

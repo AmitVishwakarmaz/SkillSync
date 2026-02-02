@@ -1,0 +1,11 @@
+role_id,role_name,description,required_skills,icon
+software_developer,Software Developer,Build software applications and systems,"python,java,dsa,oop,git,sql,system_design,problem_solving",💻
+web_developer,Web Developer,Create web applications and websites,"html,css,javascript,react,nodejs,git,rest_api,mongodb",🌐
+data_analyst,Data Analyst,Analyze data to drive business decisions,"python,sql,pandas,numpy,data_viz,problem_solving,communication",📊
+data_scientist,Data Scientist,Build ML models and derive insights from data,"python,machine_learning,deep_learning,pandas,numpy,sql,data_viz,tensorflow",🔬
+ai_engineer,AI/ML Engineer,Develop AI and machine learning solutions,"python,machine_learning,deep_learning,tensorflow,numpy,pandas,dsa,system_design",🤖
+backend_developer,Backend Developer,Build server-side applications and APIs,"python,java,nodejs,sql,mongodb,rest_api,docker,aws,git",⚙️
+frontend_developer,Frontend Developer,Create user interfaces and experiences,"html,css,javascript,react,git,rest_api,problem_solving",🎨
+devops_engineer,DevOps Engineer,Manage deployment and infrastructure,"docker,aws,gcp,git,python,system_design,agile",🔧
+fullstack_developer,Full Stack Developer,End-to-end web development,"html,css,javascript,react,nodejs,mongodb,sql,git,rest_api,docker",🚀
+cybersecurity,Cybersecurity Analyst,Protect systems from security threats,"python,networking,security,linux,problem_solving,communication",🔒
