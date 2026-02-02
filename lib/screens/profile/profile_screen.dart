@@ -281,7 +281,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             '$skillCount skills added',
             style: TextStyle(
               color: AppTheme.textSecondary,
-              marginBottom: 12,
             ),
           ),
           const SizedBox(height: 12),
