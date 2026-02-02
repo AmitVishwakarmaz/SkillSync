@@ -3,7 +3,7 @@ SkillSync Backend - Flask API Server
 Skill Gap Mapper for Students vs Job Markets
 
 This backend provides APIs for:
-- Skill gap analysis
+- Skill gap analysis with ML-based readiness prediction
 - Personalized learning roadmap
 - Progress tracking
 - User management
@@ -15,6 +15,9 @@ import pandas as pd
 import os
 import json
 from datetime import datetime
+
+# Import ML predictor for job readiness
+from ml_predictor import predict_readiness, get_skill_recommendations
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for Flutter app
@@ -58,7 +61,7 @@ def health_check():
     """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
-        'message': 'SkillSync API is running',
+        'message': 'SkillSync API is running (with ML Model)',
         'timestamp': datetime.now().isoformat()
     })
 
@@ -166,12 +169,13 @@ def get_job_role(role_id):
     })
 
 
-# ==================== SKILL GAP ANALYSIS ====================
+# ==================== SKILL GAP ANALYSIS (ML-POWERED) ====================
 
 @app.route('/api/analyze-gap', methods=['POST'])
 def analyze_skill_gap():
     """
-    Analyze skill gap between user skills and job role requirements
+    Analyze skill gap between user skills and job role requirements.
+    Uses ML model for job readiness prediction.
     
     Request body:
     {
@@ -252,12 +256,14 @@ def analyze_skill_gap():
                 'required_level': required_level
             })
     
-    # Calculate match percentage
-    total_required = len(required_skill_ids)
-    proficient_count = len(proficient_skills)
-    partial_count = len(skills_to_improve) * 0.5  # Partial credit
+    # ===== USE ML MODEL FOR JOB READINESS PREDICTION =====
+    ml_readiness_score = predict_readiness(user_skills, target_role)
     
-    match_percentage = int(((proficient_count + partial_count) / total_required) * 100) if total_required > 0 else 0
+    # Get skill recommendations from ML module
+    recommendations = get_skill_recommendations(user_skills, target_role)
+    
+    # Combine ML score with gap analysis
+    total_required = len(required_skill_ids)
     
     return jsonify({
         'success': True,
@@ -267,15 +273,17 @@ def analyze_skill_gap():
                 'name': role_data['role_name'],
                 'icon': role_data['icon']
             },
-            'match_percentage': match_percentage,
+            'match_percentage': ml_readiness_score,  # ML-predicted score
             'proficient_skills': proficient_skills,
             'skills_to_improve': skills_to_improve,
             'missing_skills': missing_skills,
+            'recommendations': recommendations,
             'summary': {
                 'total_required': total_required,
                 'proficient': len(proficient_skills),
                 'to_improve': len(skills_to_improve),
-                'missing': len(missing_skills)
+                'missing': len(missing_skills),
+                'ml_readiness_score': ml_readiness_score
             }
         }
     })
