@@ -1,53 +1,81 @@
-/// Personalized roadmap screen showing learning path
+/// Personalized roadmap screen - Uses Flask Backend API
 library;
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../config/theme.dart';
-import '../../services/auth_service.dart';
-import '../../services/firestore_service.dart';
-import '../../models/job_role_model.dart';
-import '../../models/skill_model.dart';
-import '../../data/skills_data.dart';
+import '../../services/api_service.dart';
 
 class RoadmapScreen extends StatefulWidget {
-  const RoadmapScreen({super.key});
+  final List<dynamic>? missingSkills;
+  final List<dynamic>? skillsToImprove;
+
+  const RoadmapScreen({
+    super.key,
+    this.missingSkills,
+    this.skillsToImprove,
+  });
 
   @override
   State<RoadmapScreen> createState() => _RoadmapScreenState();
 }
 
 class _RoadmapScreenState extends State<RoadmapScreen> {
-  SkillGapAnalysis? _analysis;
+  Map<String, dynamic>? _roadmapData;
   bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _loadRoadmap();
   }
 
-  Future<void> _loadData() async {
+  Future<void> _loadRoadmap() async {
     try {
-      final authService = context.read<AuthService>();
-      final firestoreService = context.read<FirestoreService>();
+      // Extract skill IDs from the passed data
+      final missingSkillIds = widget.missingSkills
+          ?.map((s) => s['skill_id'] as String)
+          .toList() ?? [];
       
-      if (authService.currentUser != null) {
-        final user = await firestoreService.getUser(authService.currentUser!.uid);
-        if (user != null && user.selectedJobRole != null && mounted) {
-          final analysis = firestoreService.analyzeSkillGap(
-            user.skills,
-            user.selectedJobRole!,
-          );
-          setState(() {
-            _analysis = analysis;
-            _isLoading = false;
-          });
-        }
+      final skillsToImprove = widget.skillsToImprove
+          ?.map((s) => {
+                'skill_id': s['skill_id'] as String,
+                'current_level': s['current_level'] as String? ?? 'beginner',
+              })
+          .toList() ?? [];
+
+      // Call Flask Backend API for roadmap generation
+      final roadmap = await ApiService.generateRoadmap(
+        missingSkills: missingSkillIds,
+        skillsToImprove: skillsToImprove,
+      );
+
+      if (mounted) {
+        setState(() {
+          _roadmapData = roadmap;
+          _isLoading = false;
+        });
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _errorMessage = 'Error generating roadmap: $e';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open $url')),
+        );
       }
     }
   }
@@ -62,46 +90,43 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
         child: SafeArea(
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
-              : _analysis == null
-                  ? _buildEmptyState()
+              : _errorMessage != null
+                  ? _buildError()
                   : _buildContent(),
         ),
       ),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildError() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.map_outlined,
-            size: 80,
-            color: AppTheme.textLight,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No roadmap available',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: AppTheme.textSecondary,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: AppTheme.errorColor),
+            const SizedBox(height: 16),
+            Text(
+              _errorMessage ?? 'Unable to generate roadmap',
+              textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Complete your profile to get a personalized learning path',
-            style: TextStyle(color: AppTheme.textSecondary),
-          ),
-        ],
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Go Back'),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildContent() {
-    final allSkillsToLearn = [
-      ..._analysis!.missingSkills,
-      ..._analysis!.skillsToImprove,
-    ];
+    final roadmap = _roadmapData?['roadmap'] as List<dynamic>? ?? [];
+    final totalSkills = _roadmapData?['total_skills'] ?? 0;
+    final totalHours = _roadmapData?['total_estimated_hours'] ?? 0;
+    final estimatedWeeks = _roadmapData?['estimated_weeks'] ?? 1;
 
     return Column(
       children: [
@@ -114,9 +139,12 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
               children: [
                 _buildHeader(),
                 const SizedBox(height: 24),
-                _buildRoadmapOverview(allSkillsToLearn.length),
+                _buildSummaryCard(totalSkills, totalHours, estimatedWeeks),
                 const SizedBox(height: 24),
-                _buildLearningTimeline(allSkillsToLearn),
+                if (roadmap.isEmpty)
+                  _buildEmptyState()
+                else
+                  _buildTimeline(roadmap),
               ],
             ),
           ),
@@ -172,9 +200,10 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Text(
-              _analysis!.targetRole.icon,
-              style: const TextStyle(fontSize: 32),
+            child: const Icon(
+              Icons.route,
+              color: Colors.white,
+              size: 32,
             ),
           ),
           const SizedBox(width: 16),
@@ -183,16 +212,16 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Your path to becoming a',
+                  'Your Personalized Path',
                   style: TextStyle(
                     color: Colors.white70,
                     fontSize: 14,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  _analysis!.targetRole.name,
-                  style: const TextStyle(
+                const Text(
+                  'Learning Roadmap',
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -206,7 +235,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     );
   }
 
-  Widget _buildRoadmapOverview(int totalSkills) {
+  Widget _buildSummaryCard(int totalSkills, int totalHours, int weeks) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -216,32 +245,32 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
       ),
       child: Row(
         children: [
-          _buildOverviewItem(
-            '${_analysis!.missingSkills.length}',
-            'New Skills',
-            AppTheme.errorColor,
-            Icons.add_circle,
+          _buildSummaryItem(
+            '$totalSkills',
+            'Skills to Learn',
+            AppTheme.primaryColor,
+            Icons.school,
           ),
           _buildDivider(),
-          _buildOverviewItem(
-            '${_analysis!.skillsToImprove.length}',
-            'To Improve',
-            AppTheme.warningColor,
-            Icons.trending_up,
-          ),
-          _buildDivider(),
-          _buildOverviewItem(
-            '${_analysis!.proficientSkills.length}',
-            'Complete',
+          _buildSummaryItem(
+            '~$totalHours',
+            'Total Hours',
             AppTheme.accentColor,
-            Icons.check_circle,
+            Icons.access_time,
+          ),
+          _buildDivider(),
+          _buildSummaryItem(
+            '~$weeks',
+            'Weeks',
+            AppTheme.warningColor,
+            Icons.calendar_today,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildOverviewItem(String value, String label, Color color, IconData icon) {
+  Widget _buildSummaryItem(String value, String label, Color color, IconData icon) {
     return Expanded(
       child: Column(
         children: [
@@ -251,13 +280,13 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
               color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(icon, color: color, size: 20),
           ),
           const SizedBox(height: 8),
           Text(
             value,
             style: TextStyle(
-              fontSize: 24,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: color,
             ),
@@ -265,7 +294,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               color: AppTheme.textSecondary,
             ),
           ),
@@ -282,77 +311,76 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     );
   }
 
-  Widget _buildLearningTimeline(List<SkillGap> skills) {
-    if (skills.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          color: AppTheme.accentColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.celebration,
-              size: 64,
+  Widget _buildEmptyState() {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: AppTheme.accentColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.celebration,
+            size: 64,
+            color: AppTheme.accentColor,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Congratulations!',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: AppTheme.accentColor,
+              fontWeight: FontWeight.bold,
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Congratulations!',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: AppTheme.accentColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'You have all the skills needed for this role!',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppTheme.textSecondary),
-            ),
-          ],
-        ),
-      );
-    }
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'You have all the skills needed for this role!',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppTheme.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
 
-    // Sort by priority: missing skills first, then by required level
-    final sortedSkills = List<SkillGap>.from(skills);
-    sortedSkills.sort((a, b) {
-      if (a.isMissing != b.isMissing) {
-        return a.isMissing ? -1 : 1;
-      }
-      return b.requiredLevel.value.compareTo(a.requiredLevel.value);
-    });
-
+  Widget _buildTimeline(List<dynamic> roadmap) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Learning Path',
+          'Step-by-Step Learning Path',
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 8),
         Text(
-          'Follow this roadmap to reach your goal',
+          'Follow this roadmap to achieve your career goals',
           style: TextStyle(color: AppTheme.textSecondary),
         ),
         const SizedBox(height: 16),
-        ...sortedSkills.asMap().entries.map((entry) {
+        ...roadmap.asMap().entries.map((entry) {
           final index = entry.key;
-          final gap = entry.value;
-          final isLast = index == sortedSkills.length - 1;
-          
-          return _buildTimelineItem(gap, index + 1, isLast);
+          final step = entry.value as Map<String, dynamic>;
+          final isLast = index == roadmap.length - 1;
+          return _buildTimelineItem(step, isLast);
         }),
       ],
     );
   }
 
-  Widget _buildTimelineItem(SkillGap gap, int step, bool isLast) {
-    final skill = SkillsData.getSkillById(gap.skillId);
-    final color = gap.isMissing ? AppTheme.errorColor : AppTheme.warningColor;
-    
+  Widget _buildTimelineItem(Map<String, dynamic> step, bool isLast) {
+    final stepNumber = step['step'] ?? 1;
+    final skillName = step['skill_name'] ?? '';
+    final category = step['category'] ?? '';
+    final status = step['status'] ?? 'New Skill';
+    final targetLevel = step['target_level'] ?? 'intermediate';
+    final currentLevel = step['current_level'];
+    final estimatedHours = step['estimated_hours'] ?? 0;
+    final resources = step['resources'] as List<dynamic>? ?? [];
+
+    final isNew = status == 'New Skill';
+    final color = isNew ? AppTheme.errorColor : AppTheme.warningColor;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -369,7 +397,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
               ),
               child: Center(
                 child: Text(
-                  '$step',
+                  '$stepNumber',
                   style: TextStyle(
                     color: color,
                     fontWeight: FontWeight.bold,
@@ -380,7 +408,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
             if (!isLast)
               Container(
                 width: 2,
-                height: 60,
+                height: 150 + (resources.length * 50).toDouble(),
                 color: Colors.grey.shade300,
               ),
           ],
@@ -399,11 +427,12 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Header
                 Row(
                   children: [
                     Expanded(
                       child: Text(
-                        gap.skillName,
+                        skillName,
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
@@ -417,7 +446,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        gap.isMissing ? 'New' : 'Upgrade',
+                        isNew ? 'New' : 'Upgrade',
                         style: TextStyle(
                           color: color,
                           fontSize: 12,
@@ -427,47 +456,126 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                     ),
                   ],
                 ),
-                if (skill?.description != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    skill!.description!,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
+                // Meta info
                 Row(
                   children: [
-                    Icon(Icons.flag_outlined, size: 16, color: AppTheme.textSecondary),
+                    Icon(Icons.category_outlined, size: 14, color: AppTheme.textSecondary),
                     const SizedBox(width: 4),
                     Text(
-                      'Target: ${gap.requiredLevel.displayName}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.textSecondary,
-                      ),
+                      category,
+                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                     ),
-                    if (!gap.isMissing) ...[
-                      const SizedBox(width: 12),
-                      Icon(Icons.arrow_upward, size: 16, color: color),
-                      const SizedBox(width: 4),
-                      Text(
-                        'From ${gap.currentLevel?.displayName}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: color,
-                        ),
-                      ),
-                    ],
+                    const SizedBox(width: 16),
+                    Icon(Icons.flag_outlined, size: 14, color: AppTheme.textSecondary),
+                    const SizedBox(width: 4),
+                    Text(
+                      currentLevel != null
+                          ? '$currentLevel → $targetLevel'
+                          : 'Target: $targetLevel',
+                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    ),
                   ],
                 ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.access_time, size: 14, color: AppTheme.textSecondary),
+                    const SizedBox(width: 4),
+                    Text(
+                      '~$estimatedHours hours',
+                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    ),
+                  ],
+                ),
+                // Resources
+                if (resources.isNotEmpty) ...[
+                  const Divider(height: 24),
+                  Text(
+                    'Recommended Resources:',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...resources.map((res) => _buildResourceItem(res as Map<String, dynamic>)),
+                ],
               ],
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildResourceItem(Map<String, dynamic> resource) {
+    final name = resource['name'] ?? '';
+    final type = resource['type'] ?? '';
+    final url = resource['url'] ?? '';
+    final hours = resource['hours'] ?? 0;
+
+    IconData typeIcon;
+    switch (type.toLowerCase()) {
+      case 'video':
+        typeIcon = Icons.play_circle_outline;
+        break;
+      case 'course':
+        typeIcon = Icons.school_outlined;
+        break;
+      case 'documentation':
+        typeIcon = Icons.description_outlined;
+        break;
+      case 'book':
+        typeIcon = Icons.menu_book_outlined;
+        break;
+      case 'tutorial':
+        typeIcon = Icons.article_outlined;
+        break;
+      default:
+        typeIcon = Icons.link;
+    }
+
+    return InkWell(
+      onTap: url.isNotEmpty ? () => _launchUrl(url) : null,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppTheme.primaryColor.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Icon(typeIcon, size: 18, color: AppTheme.primaryColor),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                  Text(
+                    '$type • ~$hours hours',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.open_in_new, size: 16, color: AppTheme.primaryColor),
+          ],
+        ),
+      ),
     );
   }
 }

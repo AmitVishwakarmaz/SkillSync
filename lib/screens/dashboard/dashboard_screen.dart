@@ -1,4 +1,4 @@
-/// Main dashboard screen with progress overview
+/// Main dashboard screen with progress overview - Uses Flask API
 library;
 
 import 'package:flutter/material.dart';
@@ -6,8 +6,8 @@ import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
+import '../../services/api_service.dart';
 import '../../models/user_model.dart';
-import '../../models/job_role_model.dart';
 import '../../data/job_roles_data.dart';
 import '../../widgets/progress_card.dart';
 import '../analysis/skill_gap_screen.dart';
@@ -26,7 +26,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   UserModel? _user;
-  SkillGapAnalysis? _analysis;
+  Map<String, dynamic>? _analysisData;
   bool _isLoading = true;
 
   @override
@@ -43,18 +43,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (authService.currentUser != null) {
         final user = await firestoreService.getUser(authService.currentUser!.uid);
         
-        SkillGapAnalysis? analysis;
+        Map<String, dynamic>? analysis;
         if (user != null && user.selectedJobRole != null && user.skills.isNotEmpty) {
-          analysis = firestoreService.analyzeSkillGap(
-            user.skills,
-            user.selectedJobRole!,
-          );
+          // Use Flask API for analysis
+          try {
+            analysis = await ApiService.analyzeGap(
+              userSkills: user.skills,
+              targetRole: user.selectedJobRole!,
+            );
+          } catch (e) {
+            // If API fails, continue without analysis
+            debugPrint('API Error: $e');
+          }
         }
         
         if (mounted) {
           setState(() {
             _user = user;
-            _analysis = analysis;
+            _analysisData = analysis;
             _isLoading = false;
           });
         }
@@ -86,7 +92,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       children: [
                         _buildHeader(),
                         const SizedBox(height: 24),
-                        if (_analysis != null) ...[
+                        if (_analysisData != null) ...[
                           _buildProgressCard(),
                           const SizedBox(height: 16),
                           _buildStatsRow(),
@@ -182,13 +188,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildProgressCard() {
     final role = JobRolesData.getRoleById(_user?.selectedJobRole ?? '');
+    final matchPercentage = _analysisData?['match_percentage'] ?? 0;
     
     return ProgressCard(
       title: role?.name ?? 'Target Role',
       subtitle: 'Skill match for your target role',
-      percentage: _analysis?.matchPercentage ?? 0,
+      percentage: matchPercentage,
       icon: Icons.trending_up,
-      color: _getProgressColor(_analysis?.matchPercentage ?? 0),
+      color: _getProgressColor(matchPercentage),
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const SkillGapScreen()),
@@ -203,6 +210,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildStatsRow() {
+    final proficient = (_analysisData?['proficient_skills'] as List?)?.length ?? 0;
+    final missing = (_analysisData?['missing_skills'] as List?)?.length ?? 0;
+    
     return Row(
       children: [
         Expanded(
@@ -216,7 +226,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(width: 12),
         Expanded(
           child: StatCard(
-            value: '${_analysis?.proficientSkills.length ?? 0}',
+            value: '$proficient',
             label: 'Proficient',
             icon: Icons.check_circle_outline,
             color: AppTheme.accentColor,
@@ -225,7 +235,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(width: 12),
         Expanded(
           child: StatCard(
-            value: '${_analysis?.missingSkills.length ?? 0}',
+            value: '$missing',
             label: 'To Learn',
             icon: Icons.add_circle_outline,
             color: AppTheme.warningColor,
@@ -281,7 +291,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildSkillsOverview() {
-    if (_analysis == null) return const SizedBox.shrink();
+    if (_analysisData == null) return const SizedBox.shrink();
+
+    final proficientSkills = (_analysisData?['proficient_skills'] as List<dynamic>? ?? [])
+        .map((s) => s['skill_name'] as String? ?? '')
+        .where((name) => name.isNotEmpty)
+        .toList();
+    final skillsToImprove = (_analysisData?['skills_to_improve'] as List<dynamic>? ?? [])
+        .map((s) => s['skill_name'] as String? ?? '')
+        .where((name) => name.isNotEmpty)
+        .toList();
+    final missingSkills = (_analysisData?['missing_skills'] as List<dynamic>? ?? [])
+        .map((s) => s['skill_name'] as String? ?? '')
+        .where((name) => name.isNotEmpty)
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -300,26 +323,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           child: Column(
             children: [
-              _buildSkillCategory(
-                'Strong Skills',
-                _analysis!.strongSkills,
-                AppTheme.accentColor,
-                Icons.check_circle,
-              ),
-              if (_analysis!.skillsToImprove.isNotEmpty) ...[
-                const Divider(height: 24),
+              if (proficientSkills.isNotEmpty)
+                _buildSkillCategory(
+                  'Strong Skills',
+                  proficientSkills,
+                  AppTheme.accentColor,
+                  Icons.check_circle,
+                ),
+              if (skillsToImprove.isNotEmpty) ...[
+                if (proficientSkills.isNotEmpty) const Divider(height: 24),
                 _buildSkillCategory(
                   'Needs Improvement',
-                  _analysis!.skillsToImprove.map((g) => g.skillName).toList(),
+                  skillsToImprove,
                   AppTheme.warningColor,
                   Icons.trending_up,
                 ),
               ],
-              if (_analysis!.missingSkills.isNotEmpty) ...[
-                const Divider(height: 24),
+              if (missingSkills.isNotEmpty) ...[
+                if (proficientSkills.isNotEmpty || skillsToImprove.isNotEmpty) 
+                  const Divider(height: 24),
                 _buildSkillCategory(
                   'To Learn',
-                  _analysis!.missingSkills.map((g) => g.skillName).toList(),
+                  missingSkills,
                   AppTheme.errorColor,
                   Icons.add_circle,
                 ),

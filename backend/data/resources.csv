@@ -1,0 +1,38 @@
+skill_id,resource_name,resource_type,url,difficulty,estimated_hours
+python,Python for Beginners - freeCodeCamp,Video,https://www.youtube.com/watch?v=rfscVS0vtbw,beginner,4
+python,Python Official Tutorial,Documentation,https://docs.python.org/3/tutorial/,beginner,10
+python,Automate the Boring Stuff,Book,https://automatetheboringstuff.com/,beginner,20
+java,Java Tutorial - Programming with Mosh,Video,https://www.youtube.com/watch?v=eIrMbAQSU34,beginner,3
+java,Java Documentation,Documentation,https://docs.oracle.com/javase/tutorial/,beginner,15
+javascript,JavaScript for Beginners - freeCodeCamp,Video,https://www.youtube.com/watch?v=PkZNo7MFNFg,beginner,4
+javascript,MDN JavaScript Guide,Documentation,https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide,beginner,12
+javascript,JavaScript.info,Tutorial,https://javascript.info/,intermediate,20
+html,HTML Crash Course - Traversy Media,Video,https://www.youtube.com/watch?v=UB1O30fR-EE,beginner,1
+html,MDN HTML Guide,Documentation,https://developer.mozilla.org/en-US/docs/Learn/HTML,beginner,5
+css,CSS Crash Course - Traversy Media,Video,https://www.youtube.com/watch?v=yfoY53QXEnI,beginner,1
+css,CSS Tricks,Tutorial,https://css-tricks.com/,intermediate,10
+react,React Official Tutorial,Documentation,https://react.dev/learn,beginner,8
+react,React Course - freeCodeCamp,Video,https://www.youtube.com/watch?v=bMknfKXIFA8,beginner,12
+nodejs,Node.js Tutorial - Programming with Mosh,Video,https://www.youtube.com/watch?v=TlB_eWDSMt4,beginner,1
+nodejs,Node.js Official Docs,Documentation,https://nodejs.org/en/docs/guides/,intermediate,10
+sql,SQL Tutorial - freeCodeCamp,Video,https://www.youtube.com/watch?v=HXV3zeQKqGY,beginner,4
+sql,SQLZoo Interactive,Tutorial,https://sqlzoo.net/,beginner,8
+mongodb,MongoDB University,Course,https://university.mongodb.com/,beginner,15
+git,Git & GitHub Crash Course,Video,https://www.youtube.com/watch?v=RGOj5yH7evk,beginner,1
+git,Pro Git Book,Book,https://git-scm.com/book/en/v2,intermediate,10
+docker,Docker Tutorial - TechWorld with Nana,Video,https://www.youtube.com/watch?v=3c-iBn73dDE,intermediate,3
+docker,Docker Official Docs,Documentation,https://docs.docker.com/get-started/,intermediate,8
+aws,AWS Cloud Practitioner - freeCodeCamp,Video,https://www.youtube.com/watch?v=SOTamWNgDKc,beginner,13
+machine_learning,Machine Learning - Andrew Ng (Coursera),Course,https://www.coursera.org/learn/machine-learning,intermediate,60
+machine_learning,ML Crash Course - Google,Course,https://developers.google.com/machine-learning/crash-course,beginner,15
+deep_learning,Deep Learning Specialization - Coursera,Course,https://www.coursera.org/specializations/deep-learning,advanced,80
+tensorflow,TensorFlow Official Tutorial,Documentation,https://www.tensorflow.org/tutorials,intermediate,20
+pandas,Pandas Tutorial - Corey Schafer,Video,https://www.youtube.com/watch?v=ZyhVh-qRZPA&list=PL-osiE80TeTsWmV9i9c58mdDCSskIFdDS,beginner,5
+numpy,NumPy Tutorial - freeCodeCamp,Video,https://www.youtube.com/watch?v=QUT1VHiLmmI,beginner,1
+dsa,DSA Course - Abdul Bari,Video,https://www.youtube.com/playlist?list=PLDN4rrl48XKpZkf03iYFl-O29szjTrs_O,intermediate,50
+dsa,LeetCode Practice,Practice,https://leetcode.com/,intermediate,100
+system_design,System Design Primer,GitHub,https://github.com/donnemartin/system-design-primer,advanced,40
+oop,OOP Concepts - Programming with Mosh,Video,https://www.youtube.com/watch?v=pTB0EiLXUC8,beginner,1
+rest_api,REST API Tutorial,Tutorial,https://restfulapi.net/,beginner,5
+flask,Flask Mega Tutorial,Tutorial,https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world,intermediate,20
+data_viz,Data Visualization with Python - freeCodeCamp,Video,https://www.youtube.com/watch?v=a9UrKTVEeZA,beginner,5
