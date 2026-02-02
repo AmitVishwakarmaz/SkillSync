@@ -2,6 +2,7 @@
 library;
 
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -69,21 +70,32 @@ class ApiService {
     required String targetRole,
   }) async {
     try {
+      final requestBody = json.encode({
+        'user_skills': userSkills,
+        'target_role': targetRole,
+      });
+      
+      debugPrint('ApiService.analyzeGap - URL: $baseUrl/analyze-gap');
+      debugPrint('ApiService.analyzeGap - Request: $requestBody');
+      
       final response = await http.post(
         Uri.parse('$baseUrl/analyze-gap'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'user_skills': userSkills,
-          'target_role': targetRole,
-        }),
+        body: requestBody,
       );
+
+      debugPrint('ApiService.analyzeGap - Status: ${response.statusCode}');
+      debugPrint('ApiService.analyzeGap - Response: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['data'] ?? {};
+        final result = data['data'] ?? {};
+        debugPrint('ApiService.analyzeGap - Parsed data keys: ${result.keys.toList()}');
+        return result;
       }
-      throw Exception('Failed to analyze skill gap');
+      throw Exception('Failed to analyze skill gap: ${response.statusCode}');
     } catch (e) {
+      debugPrint('ApiService.analyzeGap - ERROR: $e');
       throw Exception('Network error: $e');
     }
   }

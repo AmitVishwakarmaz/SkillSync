@@ -2,37 +2,97 @@ skill_id,resource_name,resource_type,url,difficulty,estimated_hours
 python,Python for Beginners - freeCodeCamp,Video,https://www.youtube.com/watch?v=rfscVS0vtbw,beginner,4
 python,Python Official Tutorial,Documentation,https://docs.python.org/3/tutorial/,beginner,10
 python,Automate the Boring Stuff,Book,https://automatetheboringstuff.com/,beginner,20
+python,100 Days of Code - Angela Yu (Udemy),Course,https://www.udemy.com/course/100-days-of-code/,beginner,60
+python,Python Intermediate - Corey Schafer,Video,https://www.youtube.com/playlist?list=PL-osiE80TeTt2d9bfVyTiXJA-UTHn6WwU,intermediate,8
 java,Java Tutorial - Programming with Mosh,Video,https://www.youtube.com/watch?v=eIrMbAQSU34,beginner,3
 java,Java Documentation,Documentation,https://docs.oracle.com/javase/tutorial/,beginner,15
+java,Java Programming Masterclass - Tim Buchalka (Udemy),Course,https://www.udemy.com/course/java-the-complete-java-developer-course/,intermediate,80
+java,Java DSA - Abdul Bari,Video,https://www.youtube.com/playlist?list=PLDN4rrl48XKpZkf03iYFl-O29szjTrs_O,intermediate,50
 javascript,JavaScript for Beginners - freeCodeCamp,Video,https://www.youtube.com/watch?v=PkZNo7MFNFg,beginner,4
 javascript,MDN JavaScript Guide,Documentation,https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide,beginner,12
 javascript,JavaScript.info,Tutorial,https://javascript.info/,intermediate,20
+javascript,JavaScript Mastery - Complete Course,Video,https://www.youtube.com/watch?v=hdI2bqOjy3c,intermediate,12
+javascript,JavaScript30 - Wes Bos,Course,https://javascript30.com/,intermediate,30
 html,HTML Crash Course - Traversy Media,Video,https://www.youtube.com/watch?v=UB1O30fR-EE,beginner,1
 html,MDN HTML Guide,Documentation,https://developer.mozilla.org/en-US/docs/Learn/HTML,beginner,5
+html,HTML & CSS Full Course - freeCodeCamp,Video,https://www.youtube.com/watch?v=mU6anWqZJcc,beginner,6
 css,CSS Crash Course - Traversy Media,Video,https://www.youtube.com/watch?v=yfoY53QXEnI,beginner,1
 css,CSS Tricks,Tutorial,https://css-tricks.com/,intermediate,10
+css,Advanced CSS and Sass - Jonas Schmedtmann,Course,https://www.udemy.com/course/advanced-css-and-sass/,intermediate,28
+css,CSS Flexbox & Grid - Kevin Powell,Video,https://www.youtube.com/watch?v=8QKOaTYvYUA,intermediate,2
 react,React Official Tutorial,Documentation,https://react.dev/learn,beginner,8
 react,React Course - freeCodeCamp,Video,https://www.youtube.com/watch?v=bMknfKXIFA8,beginner,12
+react,React Complete Guide - Maximilian Schwarzmuller,Course,https://www.udemy.com/course/react-the-complete-guide-incl-redux/,intermediate,48
+react,React Projects - JavaScript Mastery,Video,https://www.youtube.com/watch?v=RGKi6LSPDLU,intermediate,8
 nodejs,Node.js Tutorial - Programming with Mosh,Video,https://www.youtube.com/watch?v=TlB_eWDSMt4,beginner,1
 nodejs,Node.js Official Docs,Documentation,https://nodejs.org/en/docs/guides/,intermediate,10
+nodejs,Node.js Complete Course - Academind,Course,https://www.udemy.com/course/nodejs-the-complete-guide/,intermediate,40
+nodejs,Express.js Crash Course - Traversy Media,Video,https://www.youtube.com/watch?v=L72fhGm1tfE,intermediate,2
 sql,SQL Tutorial - freeCodeCamp,Video,https://www.youtube.com/watch?v=HXV3zeQKqGY,beginner,4
 sql,SQLZoo Interactive,Tutorial,https://sqlzoo.net/,beginner,8
+sql,Complete SQL Bootcamp - Jose Portilla,Course,https://www.udemy.com/course/the-complete-sql-bootcamp/,intermediate,22
+sql,SQL Practice - LeetCode Database,Practice,https://leetcode.com/problemset/database/,intermediate,30
 mongodb,MongoDB University,Course,https://university.mongodb.com/,beginner,15
+mongodb,MongoDB Crash Course - Traversy Media,Video,https://www.youtube.com/watch?v=-56x56UppqQ,beginner,1
+mongodb,MongoDB Complete Developer Guide,Course,https://www.udemy.com/course/mongodb-the-complete-developers-guide/,intermediate,17
 git,Git & GitHub Crash Course,Video,https://www.youtube.com/watch?v=RGOj5yH7evk,beginner,1
 git,Pro Git Book,Book,https://git-scm.com/book/en/v2,intermediate,10
+git,GitHub Learning Lab,Tutorial,https://skills.github.com/,beginner,5
+git,Advanced Git Techniques - Atlassian,Documentation,https://www.atlassian.com/git/tutorials/advanced-overview,advanced,8
 docker,Docker Tutorial - TechWorld with Nana,Video,https://www.youtube.com/watch?v=3c-iBn73dDE,intermediate,3
 docker,Docker Official Docs,Documentation,https://docs.docker.com/get-started/,intermediate,8
+docker,Docker & Kubernetes Complete - Maximilian,Course,https://www.udemy.com/course/docker-kubernetes-the-practical-guide/,intermediate,24
 aws,AWS Cloud Practitioner - freeCodeCamp,Video,https://www.youtube.com/watch?v=SOTamWNgDKc,beginner,13
+aws,AWS Solutions Architect Course,Course,https://www.udemy.com/course/aws-certified-solutions-architect-associate/,intermediate,40
+aws,AWS Documentation,Documentation,https://docs.aws.amazon.com/,intermediate,20
 machine_learning,Machine Learning - Andrew Ng (Coursera),Course,https://www.coursera.org/learn/machine-learning,intermediate,60
 machine_learning,ML Crash Course - Google,Course,https://developers.google.com/machine-learning/crash-course,beginner,15
+machine_learning,ML with Python - freeCodeCamp,Video,https://www.youtube.com/watch?v=tPYj3fFJGjk,beginner,10
+machine_learning,Hands-On ML Book - Geron,Book,https://www.oreilly.com/library/view/hands-on-machine-learning/9781098125974/,intermediate,50
+machine_learning,Kaggle Learn ML,Tutorial,https://www.kaggle.com/learn/intro-to-machine-learning,beginner,5
 deep_learning,Deep Learning Specialization - Coursera,Course,https://www.coursera.org/specializations/deep-learning,advanced,80
+deep_learning,Deep Learning with PyTorch - freeCodeCamp,Video,https://www.youtube.com/watch?v=GIsg-ZUy0MY,intermediate,10
+deep_learning,Fast.ai Practical Deep Learning,Course,https://course.fast.ai/,intermediate,40
 tensorflow,TensorFlow Official Tutorial,Documentation,https://www.tensorflow.org/tutorials,intermediate,20
+tensorflow,TensorFlow 2.0 Complete Course,Video,https://www.youtube.com/watch?v=tPYj3fFJGjk,intermediate,10
+tensorflow,TensorFlow Developer Certificate Course,Course,https://www.udemy.com/course/tensorflow-developer-certificate-machine-learning-zero-to-mastery/,advanced,60
 pandas,Pandas Tutorial - Corey Schafer,Video,https://www.youtube.com/watch?v=ZyhVh-qRZPA&list=PL-osiE80TeTsWmV9i9c58mdDCSskIFdDS,beginner,5
+pandas,Pandas Documentation,Documentation,https://pandas.pydata.org/docs/getting_started/intro_tutorials/,beginner,8
+pandas,Data Analysis with Pandas - Kaggle,Tutorial,https://www.kaggle.com/learn/pandas,beginner,4
 numpy,NumPy Tutorial - freeCodeCamp,Video,https://www.youtube.com/watch?v=QUT1VHiLmmI,beginner,1
+numpy,NumPy Official Documentation,Documentation,https://numpy.org/doc/stable/user/absolute_beginners.html,beginner,5
+numpy,NumPy for Data Science - DataCamp,Course,https://www.datacamp.com/courses/intro-to-python-for-data-science,beginner,4
 dsa,DSA Course - Abdul Bari,Video,https://www.youtube.com/playlist?list=PLDN4rrl48XKpZkf03iYFl-O29szjTrs_O,intermediate,50
 dsa,LeetCode Practice,Practice,https://leetcode.com/,intermediate,100
+dsa,Striver's SDE Sheet,Tutorial,https://takeuforward.org/interviews/strivers-sde-sheet-top-coding-interview-problems/,intermediate,80
+dsa,NeetCode Roadmap,Tutorial,https://neetcode.io/roadmap,intermediate,60
+dsa,Algorithms Specialization - Stanford (Coursera),Course,https://www.coursera.org/specializations/algorithms,advanced,64
 system_design,System Design Primer,GitHub,https://github.com/donnemartin/system-design-primer,advanced,40
+system_design,System Design Interview - Alex Xu,Book,https://www.amazon.com/System-Design-Interview-insiders-Second/dp/B08CMF2CQF,advanced,30
+system_design,Gaurav Sen System Design,Video,https://www.youtube.com/playlist?list=PLMCXHnjXnTnvo6alSjVkgxV-VH6EPyvoX,intermediate,15
 oop,OOP Concepts - Programming with Mosh,Video,https://www.youtube.com/watch?v=pTB0EiLXUC8,beginner,1
+oop,Object-Oriented Design - Coursera,Course,https://www.coursera.org/learn/object-oriented-design,intermediate,20
+oop,Head First Design Patterns,Book,https://www.oreilly.com/library/view/head-first-design/9781492077992/,intermediate,30
 rest_api,REST API Tutorial,Tutorial,https://restfulapi.net/,beginner,5
+rest_api,Building REST APIs - Traversy Media,Video,https://www.youtube.com/watch?v=0oXYLzuucwE&list=PLillGF-RfqbYRpji8t4SxUkMxfowG4Kqp,intermediate,6
+rest_api,REST API Design Best Practices,Documentation,https://swagger.io/resources/articles/best-practices-in-api-design/,intermediate,3
 flask,Flask Mega Tutorial,Tutorial,https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world,intermediate,20
+flask,Flask REST API Course - freeCodeCamp,Video,https://www.youtube.com/watch?v=GMppyAPbLYk,intermediate,5
 data_viz,Data Visualization with Python - freeCodeCamp,Video,https://www.youtube.com/watch?v=a9UrKTVEeZA,beginner,5
+data_viz,Matplotlib Tutorial - Corey Schafer,Video,https://www.youtube.com/playlist?list=PL-osiE80TeTvipOqomVEeZ1HRrcEvtZB_,beginner,3
+data_viz,Seaborn Tutorial,Documentation,https://seaborn.pydata.org/tutorial.html,intermediate,5
+communication,Communication Skills - TED Talks,Video,https://www.youtube.com/watch?v=eIho2S0ZahI,beginner,1
+communication,Business Communication Course,Course,https://www.coursera.org/learn/wharton-communication-skills,intermediate,12
+problem_solving,Problem Solving Techniques,Video,https://www.youtube.com/watch?v=UFc-RPbq8kg,beginner,2
+problem_solving,Think Like a Programmer,Book,https://nostarch.com/thinklikeaprogrammer,intermediate,15
+typescript,TypeScript Tutorial - The Net Ninja,Video,https://www.youtube.com/playlist?list=PL4cUxeGkcC9gUgr39Q_yD6v-bSyMwKPUI,beginner,5
+typescript,TypeScript Official Handbook,Documentation,https://www.typescriptlang.org/docs/handbook/,intermediate,10
+typescript,TypeScript Deep Dive,Book,https://basarat.gitbook.io/typescript/,intermediate,15
+angular,Angular Official Tutorial,Documentation,https://angular.io/tutorial,beginner,8
+angular,Angular Complete Course - Maximilian,Course,https://www.udemy.com/course/the-complete-guide-to-angular-2/,intermediate,35
+vue,Vue.js 3 Tutorial - The Net Ninja,Video,https://www.youtube.com/playlist?list=PL4cUxeGkcC9hYYGbV60Vq3IXYNfDk8At1,beginner,6
+vue,Vue.js Official Guide,Documentation,https://vuejs.org/guide/introduction.html,beginner,10
+kubernetes,Kubernetes Tutorial - TechWorld with Nana,Video,https://www.youtube.com/watch?v=X48VuDVv0do,intermediate,4
+kubernetes,Kubernetes Official Docs,Documentation,https://kubernetes.io/docs/tutorials/,intermediate,15
+linux,Linux Command Line Basics,Video,https://www.youtube.com/watch?v=ZtqBQ68cfJc,beginner,4
+linux,Linux Administration Course,Course,https://www.udemy.com/course/linux-administration-bootcamp/,intermediate,25

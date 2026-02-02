@@ -33,23 +33,42 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
 
   Future<void> _loadRoadmap() async {
     try {
+      // Debug: Show raw widget data
+      debugPrint('RoadmapScreen - Raw widget.missingSkills: ${widget.missingSkills}');
+      debugPrint('RoadmapScreen - Raw widget.skillsToImprove: ${widget.skillsToImprove}');
+      debugPrint('RoadmapScreen - missingSkills length: ${widget.missingSkills?.length ?? 0}');
+      debugPrint('RoadmapScreen - skillsToImprove length: ${widget.skillsToImprove?.length ?? 0}');
+      
+      // If we have data, show first item structure
+      if (widget.missingSkills != null && widget.missingSkills!.isNotEmpty) {
+        debugPrint('RoadmapScreen - First missing skill: ${widget.missingSkills![0]}');
+        debugPrint('RoadmapScreen - First missing skill type: ${widget.missingSkills![0].runtimeType}');
+      }
+      
       // Extract skill IDs from the passed data
       final missingSkillIds = widget.missingSkills
-          ?.map((s) => s['skill_id'] as String)
+          ?.map((s) => s['skill_id']?.toString() ?? '')
+          .where((id) => id.isNotEmpty)
           .toList() ?? [];
       
       final skillsToImprove = widget.skillsToImprove
-          ?.map((s) => {
-                'skill_id': s['skill_id'] as String,
-                'current_level': s['current_level'] as String? ?? 'beginner',
+          ?.map((s) => <String, dynamic>{
+                'skill_id': s['skill_id']?.toString() ?? '',
+                'current_level': s['current_level']?.toString() ?? 'beginner',
               })
+          .where((m) => (m['skill_id'] as String).isNotEmpty)
           .toList() ?? [];
+
+      debugPrint('RoadmapScreen - Extracted missingSkillIds: $missingSkillIds');
+      debugPrint('RoadmapScreen - Extracted skillsToImprove: $skillsToImprove');
 
       // Call Flask Backend API for roadmap generation
       final roadmap = await ApiService.generateRoadmap(
         missingSkills: missingSkillIds,
         skillsToImprove: skillsToImprove,
       );
+
+      debugPrint('RoadmapScreen - Roadmap data: $roadmap');
 
       if (mounted) {
         setState(() {
@@ -58,6 +77,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
         });
       }
     } catch (e) {
+      debugPrint('RoadmapScreen - Error: $e');
       if (mounted) {
         setState(() {
           _errorMessage = 'Error generating roadmap: $e';

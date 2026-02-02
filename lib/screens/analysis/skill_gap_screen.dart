@@ -38,11 +38,20 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
         final user = await firestoreService.getUser(authService.currentUser!.uid);
         
         if (user != null && user.selectedJobRole != null) {
+          debugPrint('SkillGapScreen - User skills: ${user.skills}');
+          debugPrint('SkillGapScreen - Target role: ${user.selectedJobRole}');
+          
           // Call Flask Backend API for analysis
           final analysis = await ApiService.analyzeGap(
             userSkills: user.skills,
             targetRole: user.selectedJobRole!,
           );
+          
+          debugPrint('SkillGapScreen - API Response:');
+          debugPrint('  match_percentage: ${analysis['match_percentage']}');
+          debugPrint('  missing_skills: ${analysis['missing_skills']}');
+          debugPrint('  skills_to_improve: ${analysis['skills_to_improve']}');
+          debugPrint('  proficient_skills: ${analysis['proficient_skills']}');
           
           if (mounted) {
             setState(() {
@@ -116,11 +125,15 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
   }
 
   Widget _buildContent() {
-    final targetRole = _analysisData?['target_role'] ?? {};
-    final matchPercentage = _analysisData?['match_percentage'] ?? 0;
-    final proficientSkills = _analysisData?['proficient_skills'] ?? [];
-    final skillsToImprove = _analysisData?['skills_to_improve'] ?? [];
-    final missingSkills = _analysisData?['missing_skills'] ?? [];
+    final targetRole = _analysisData?['target_role'] as Map<String, dynamic>? ?? {};
+    final matchPercentage = _analysisData?['match_percentage'] as int? ?? 0;
+    final proficientSkills = (_analysisData?['proficient_skills'] as List<dynamic>?) ?? [];
+    final skillsToImprove = (_analysisData?['skills_to_improve'] as List<dynamic>?) ?? [];
+    final missingSkills = (_analysisData?['missing_skills'] as List<dynamic>?) ?? [];
+
+    debugPrint('_buildContent - proficientSkills: ${proficientSkills.length}');
+    debugPrint('_buildContent - skillsToImprove: ${skillsToImprove.length}');
+    debugPrint('_buildContent - missingSkills: ${missingSkills.length}');
 
     return Column(
       children: [
@@ -173,15 +186,20 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
                 CustomButton(
                   text: 'View Learning Roadmap',
                   icon: Icons.map_outlined,
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => RoadmapScreen(
-                        missingSkills: missingSkills,
-                        skillsToImprove: skillsToImprove,
+                  onPressed: () {
+                    debugPrint('SkillGapScreen - Passing to Roadmap:');
+                    debugPrint('  Missing skills: $missingSkills');
+                    debugPrint('  Skills to improve: $skillsToImprove');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => RoadmapScreen(
+                          missingSkills: missingSkills,
+                          skillsToImprove: skillsToImprove,
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                   width: double.infinity,
                 ),
                 const SizedBox(height: 12),
