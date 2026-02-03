@@ -1,9 +1,10 @@
-/// Personalized roadmap screen - Uses Local Flutter Data
+/// Personalized roadmap screen - Uses Backend API with Local Fallback
 library;
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../config/theme.dart';
+import '../../services/api_service.dart';
 import '../../services/roadmap_service.dart';
 
 class RoadmapScreen extends StatefulWidget {
@@ -23,6 +24,7 @@ class RoadmapScreen extends StatefulWidget {
 class _RoadmapScreenState extends State<RoadmapScreen> {
   RoadmapResult? _roadmapData;
   bool _isLoading = true;
+  bool _usedBackendApi = false;
   String? _errorMessage;
 
   @override
@@ -31,26 +33,31 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     _loadRoadmap();
   }
 
-  void _loadRoadmap() {
+  Future<void> _loadRoadmap() async {
     try {
-      debugPrint('RoadmapScreen - Loading with local service');
+      debugPrint('RoadmapScreen - Loading roadmap...');
       debugPrint('RoadmapScreen - missingSkills: ${widget.missingSkills?.length ?? 0}');
       debugPrint('RoadmapScreen - skillsToImprove: ${widget.skillsToImprove?.length ?? 0}');
 
       // Convert incoming data to proper format
       final missingSkillsList = <Map<String, dynamic>>[];
+      final missingSkillIds = <String>[];
       final skillsToImproveList = <Map<String, dynamic>>[];
 
       // Process missing skills
       if (widget.missingSkills != null) {
         for (final skill in widget.missingSkills!) {
           if (skill is Map) {
+            final skillId = skill['skill_id']?.toString() ?? '';
             missingSkillsList.add({
-              'skill_id': skill['skill_id']?.toString() ?? '',
+              'skill_id': skillId,
               'skill_name': skill['skill_name']?.toString() ?? '',
               'category': skill['category']?.toString() ?? '',
               'required_level': skill['required_level']?.toString() ?? 'intermediate',
             });
+            if (skillId.isNotEmpty) {
+              missingSkillIds.add(skillId);
+            }
           }
         }
       }
@@ -70,20 +77,49 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
         }
       }
 
-      debugPrint('RoadmapScreen - Processed missing: $missingSkillsList');
-      debugPrint('RoadmapScreen - Processed toImprove: $skillsToImproveList');
+      debugPrint('RoadmapScreen - Processed missing: ${missingSkillIds.length} skills');
+      debugPrint('RoadmapScreen - Processed toImprove: ${skillsToImproveList.length} skills');
 
-      // Generate roadmap using local service
+      // Try backend API first for dynamic roadmap generation
+      try {
+        debugPrint('RoadmapScreen - Trying Backend API...');
+        final apiResult = await ApiService.generateRoadmap(
+          missingSkills: missingSkillIds,
+          skillsToImprove: skillsToImproveList,
+        );
+        
+        debugPrint('RoadmapScreen - Backend API Response:');
+        debugPrint('  roadmap steps: ${(apiResult['roadmap'] as List?)?.length ?? 0}');
+        debugPrint('  total_hours: ${apiResult['total_hours']}');
+        
+        // Convert API result to RoadmapResult format
+        final roadmap = _convertApiToRoadmapResult(apiResult);
+        
+        if (mounted) {
+          setState(() {
+            _roadmapData = roadmap;
+            _usedBackendApi = true;
+            _isLoading = false;
+          });
+        }
+        return;
+      } catch (apiError) {
+        debugPrint('RoadmapScreen - Backend API failed: $apiError');
+        debugPrint('RoadmapScreen - Falling back to local calculation...');
+      }
+
+      // Fallback: Generate roadmap using local service
       final roadmap = RoadmapService.generateRoadmap(
         missingSkills: missingSkillsList,
         skillsToImprove: skillsToImproveList,
       );
 
-      debugPrint('RoadmapScreen - Generated ${roadmap.totalSkills} steps');
+      debugPrint('RoadmapScreen - Local roadmap: ${roadmap.totalSkills} steps');
 
       if (mounted) {
         setState(() {
           _roadmapData = roadmap;
+          _usedBackendApi = false;
           _isLoading = false;
         });
       }
@@ -96,6 +132,48 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
         });
       }
     }
+  }
+
+  /// Convert API response to RoadmapResult for consistent UI handling
+  RoadmapResult _convertApiToRoadmapResult(Map<String, dynamic> apiResult) {
+    final roadmapData = apiResult['roadmap'] as List? ?? [];
+    
+    final steps = roadmapData.map((step) {
+      final resources = (step['resources'] as List?)?.map((r) => {
+        'name': r['name']?.toString() ?? '',
+        'type': r['type']?.toString() ?? '',
+        'url': r['url']?.toString() ?? '',
+        'hours': (r['estimated_hours'] as num?)?.toInt() ?? 0,
+        'difficulty': r['difficulty']?.toString() ?? 'beginner',
+      }).toList() ?? [];
+      
+      return RoadmapStep(
+        step: (step['step'] as num?)?.toInt() ?? 0,
+        skillId: step['skill_id']?.toString() ?? '',
+        skillName: step['skill_name']?.toString() ?? '',
+        category: step['category']?.toString() ?? '',
+        status: step['type'] == 'new' ? 'New Skill' : 'Upgrade',
+        currentLevel: step['current_level']?.toString(),
+        targetLevel: step['target_level']?.toString() ?? 'intermediate',
+        estimatedHours: (step['estimated_hours'] as num?)?.toInt() ?? 0,
+        resources: resources,
+      );
+    }).toList();
+    
+    // Calculate total hours from steps (fallback if API returns null)
+    int totalHours = (apiResult['total_hours'] as num?)?.toInt() ?? 0;
+    if (totalHours == 0) {
+      totalHours = steps.fold<int>(0, (sum, step) => sum + step.estimatedHours);
+    }
+    
+    final weeks = (totalHours / 10).ceil().clamp(1, 52);
+    
+    return RoadmapResult(
+      roadmap: steps,
+      totalSkills: steps.length,
+      totalEstimatedHours: totalHours,
+      estimatedWeeks: weeks,
+    );
   }
 
   Future<void> _launchUrl(String url) async {

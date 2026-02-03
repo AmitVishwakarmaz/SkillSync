@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 class ApiService {
   // Change this to your server IP when running on device
   // Use 10.0.2.2 for Android Emulator, localhost for web
-  static const String baseUrl = 'http://172.50.9.34:5000/api';
+  static const String baseUrl = 'http://192.168.0.111:5000/api';
   
   // For physical device, use your computer's IP address:
   // static const String baseUrl = 'http://192.168.1.xxx:5000/api';

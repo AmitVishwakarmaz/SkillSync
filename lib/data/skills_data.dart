@@ -1,4 +1,5 @@
 /// Predefined skills data organized by category
+/// Synced with backend/data/skills.csv
 library;
 
 import '../models/skill_model.dart';
@@ -7,34 +8,34 @@ class SkillsData {
   static const List<Skill> allSkills = [
     // Programming Languages
     Skill(
-      id: 'java',
-      name: 'Java',
-      category: SkillCategory.programming,
-      description: 'Object-oriented programming language',
-    ),
-    Skill(
       id: 'python',
       name: 'Python',
       category: SkillCategory.programming,
-      description: 'General-purpose programming language',
+      description: 'General-purpose programming language popular for data science and backend',
+    ),
+    Skill(
+      id: 'java',
+      name: 'Java',
+      category: SkillCategory.programming,
+      description: 'Object-oriented language for enterprise and Android development',
     ),
     Skill(
       id: 'javascript',
       name: 'JavaScript',
       category: SkillCategory.programming,
-      description: 'Web programming language',
+      description: 'Core language for web development',
     ),
     Skill(
       id: 'cpp',
       name: 'C++',
       category: SkillCategory.programming,
-      description: 'Systems programming language',
+      description: 'System-level programming and competitive coding',
     ),
     Skill(
       id: 'sql',
       name: 'SQL',
       category: SkillCategory.programming,
-      description: 'Database query language',
+      description: 'Query language for relational databases',
     ),
     Skill(
       id: 'typescript',
@@ -48,25 +49,25 @@ class SkillsData {
       id: 'html',
       name: 'HTML',
       category: SkillCategory.webDevelopment,
-      description: 'Web markup language',
+      description: 'Markup language for web pages',
     ),
     Skill(
       id: 'css',
       name: 'CSS',
       category: SkillCategory.webDevelopment,
-      description: 'Web styling language',
+      description: 'Styling language for web pages',
     ),
     Skill(
       id: 'react',
       name: 'React',
       category: SkillCategory.webDevelopment,
-      description: 'JavaScript library for building UIs',
+      description: 'JavaScript library for building user interfaces',
     ),
     Skill(
       id: 'nodejs',
       name: 'Node.js',
       category: SkillCategory.webDevelopment,
-      description: 'JavaScript runtime environment',
+      description: 'JavaScript runtime for backend development',
     ),
     Skill(
       id: 'angular',
@@ -80,13 +81,69 @@ class SkillsData {
       category: SkillCategory.webDevelopment,
       description: 'Progressive JavaScript framework',
     ),
+    Skill(
+      id: 'flask',
+      name: 'Flask',
+      category: SkillCategory.webDevelopment,
+      description: 'Python web microframework',
+    ),
+    Skill(
+      id: 'django',
+      name: 'Django',
+      category: SkillCategory.webDevelopment,
+      description: 'Python web framework',
+    ),
+    Skill(
+      id: 'rest_api',
+      name: 'REST API',
+      category: SkillCategory.webDevelopment,
+      description: 'RESTful API design and development',
+    ),
+
+    // Database
+    Skill(
+      id: 'mongodb',
+      name: 'MongoDB',
+      category: SkillCategory.tools,
+      description: 'NoSQL document database',
+    ),
 
     // Data Science & AI
     Skill(
-      id: 'ml',
+      id: 'machine_learning',
       name: 'Machine Learning',
       category: SkillCategory.dataScience,
-      description: 'Building predictive models',
+      description: 'Building predictive models and algorithms',
+    ),
+    Skill(
+      id: 'deep_learning',
+      name: 'Deep Learning',
+      category: SkillCategory.dataScience,
+      description: 'Neural networks and AI systems',
+    ),
+    Skill(
+      id: 'tensorflow',
+      name: 'TensorFlow',
+      category: SkillCategory.dataScience,
+      description: 'Machine learning framework by Google',
+    ),
+    Skill(
+      id: 'pandas',
+      name: 'Pandas',
+      category: SkillCategory.dataScience,
+      description: 'Data manipulation library for Python',
+    ),
+    Skill(
+      id: 'numpy',
+      name: 'NumPy',
+      category: SkillCategory.dataScience,
+      description: 'Numerical computing library for Python',
+    ),
+    Skill(
+      id: 'data_viz',
+      name: 'Data Visualization',
+      category: SkillCategory.dataScience,
+      description: 'Creating charts and visual representations',
     ),
     Skill(
       id: 'data_analysis',
@@ -101,16 +158,30 @@ class SkillsData {
       description: 'Statistical analysis and modeling',
     ),
     Skill(
-      id: 'deep_learning',
-      name: 'Deep Learning',
-      category: SkillCategory.dataScience,
-      description: 'Neural network architectures',
-    ),
-    Skill(
       id: 'nlp',
       name: 'Natural Language Processing',
       category: SkillCategory.dataScience,
       description: 'Processing and analyzing text data',
+    ),
+
+    // Core CS
+    Skill(
+      id: 'dsa',
+      name: 'Data Structures & Algorithms',
+      category: SkillCategory.programming,
+      description: 'Fundamental CS concepts',
+    ),
+    Skill(
+      id: 'oop',
+      name: 'OOP',
+      category: SkillCategory.programming,
+      description: 'Object Oriented Programming concepts',
+    ),
+    Skill(
+      id: 'system_design',
+      name: 'System Design',
+      category: SkillCategory.programming,
+      description: 'Designing scalable software systems',
     ),
 
     // Tools & Technologies
@@ -124,7 +195,7 @@ class SkillsData {
       id: 'docker',
       name: 'Docker',
       category: SkillCategory.tools,
-      description: 'Container platform',
+      description: 'Containerization platform',
     ),
     Skill(
       id: 'linux',
@@ -139,6 +210,12 @@ class SkillsData {
       description: 'Amazon Web Services cloud platform',
     ),
     Skill(
+      id: 'gcp',
+      name: 'GCP',
+      category: SkillCategory.tools,
+      description: 'Google Cloud Platform services',
+    ),
+    Skill(
       id: 'networking',
       name: 'Networking',
       category: SkillCategory.tools,
@@ -151,12 +228,12 @@ class SkillsData {
       description: 'Information security practices',
     ),
 
-    // Soft Skills
+    // Soft Skills & Methodology
     Skill(
       id: 'communication',
       name: 'Communication',
       category: SkillCategory.softSkills,
-      description: 'Effective verbal and written communication',
+      description: 'Professional communication skills',
     ),
     Skill(
       id: 'problem_solving',
@@ -168,13 +245,13 @@ class SkillsData {
       id: 'teamwork',
       name: 'Teamwork',
       category: SkillCategory.softSkills,
-      description: 'Collaborative work skills',
+      description: 'Collaboration and team management',
     ),
     Skill(
-      id: 'dsa',
-      name: 'Data Structures & Algorithms',
-      category: SkillCategory.programming,
-      description: 'Fundamental CS concepts',
+      id: 'agile',
+      name: 'Agile',
+      category: SkillCategory.softSkills,
+      description: 'Agile development methodology',
     ),
   ];
 
@@ -198,3 +275,4 @@ class SkillsData {
     return map;
   }
 }
+

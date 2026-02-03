@@ -1,4 +1,4 @@
-/// Main dashboard screen with progress overview - Uses Local Data
+/// Main dashboard screen with progress overview - Uses Cached Firebase Data
 library;
 
 import 'package:flutter/material.dart';
@@ -28,6 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   UserModel? _user;
   SkillGapResult? _analysisResult;
   bool _isLoading = true;
+  bool _usedCachedData = false;
 
   @override
   void initState() {
@@ -44,16 +45,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final user = await firestoreService.getUser(authService.currentUser!.uid);
         
         SkillGapResult? analysis;
+        bool usedCache = false;
+        
         if (user != null && user.selectedJobRole != null && user.skills.isNotEmpty) {
-          // Use local RoadmapService for analysis
-          try {
-            analysis = RoadmapService.analyzeSkillGap(
-              userSkills: user.skills,
+          // Check for cached analysis in Firebase first
+          if (user.cachedMatchPercentage != null && user.analysisTimestamp != null) {
+            debugPrint('Dashboard - Using cached analysis from Firebase');
+            debugPrint('  cachedMatchPercentage: ${user.cachedMatchPercentage}%');
+            debugPrint('  analysisTimestamp: ${user.analysisTimestamp}');
+            
+            // Use cached data - create SkillGapResult from cached fields
+            analysis = SkillGapResult(
               targetRoleId: user.selectedJobRole!,
+              targetRoleName: JobRolesData.getRoleById(user.selectedJobRole!)?.name ?? 'Target Role',
+              targetRoleIcon: JobRolesData.getRoleById(user.selectedJobRole!)?.icon ?? '💼',
+              matchPercentage: user.cachedMatchPercentage!,
+              proficientSkills: user.cachedProficientSkills ?? [],
+              skillsToImprove: user.cachedSkillsToImprove ?? [],
+              missingSkills: user.cachedMissingSkills ?? [],
+              summary: {},
             );
-            debugPrint('Dashboard - Local analysis: ${analysis.matchPercentage}% match');
-          } catch (e) {
-            debugPrint('Analysis Error: $e');
+            usedCache = true;
+          } else {
+            // Fallback: Use local RoadmapService for analysis
+            debugPrint('Dashboard - No cached data, using local calculation');
+            try {
+              analysis = RoadmapService.analyzeSkillGap(
+                userSkills: user.skills,
+                targetRoleId: user.selectedJobRole!,
+              );
+              debugPrint('Dashboard - Local analysis: ${analysis.matchPercentage}% match');
+            } catch (e) {
+              debugPrint('Dashboard - Analysis Error: $e');
+            }
           }
         }
         
@@ -61,6 +85,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           setState(() {
             _user = user;
             _analysisResult = analysis;
+            _usedCachedData = usedCache;
             _isLoading = false;
           });
         }

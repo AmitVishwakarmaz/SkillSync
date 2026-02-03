@@ -14,6 +14,13 @@ class UserModel {
   bool isProfileComplete;
   DateTime? createdAt;
   DateTime? updatedAt;
+  
+  // Cached skill analysis (from backend ML model)
+  int? cachedMatchPercentage;
+  List<Map<String, dynamic>>? cachedProficientSkills;
+  List<Map<String, dynamic>>? cachedSkillsToImprove;
+  List<Map<String, dynamic>>? cachedMissingSkills;
+  DateTime? analysisTimestamp;
 
   UserModel({
     required this.uid,
@@ -28,6 +35,11 @@ class UserModel {
     this.isProfileComplete = false,
     this.createdAt,
     this.updatedAt,
+    this.cachedMatchPercentage,
+    this.cachedProficientSkills,
+    this.cachedSkillsToImprove,
+    this.cachedMissingSkills,
+    this.analysisTimestamp,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map, String uid) {
@@ -48,6 +60,23 @@ class UserModel {
       updatedAt: map['updatedAt'] != null 
           ? DateTime.parse(map['updatedAt']) 
           : null,
+      // Cached analysis
+      cachedMatchPercentage: map['cachedMatchPercentage'],
+      cachedProficientSkills: map['cachedProficientSkills'] != null
+          ? List<Map<String, dynamic>>.from(
+              (map['cachedProficientSkills'] as List).map((e) => Map<String, dynamic>.from(e)))
+          : null,
+      cachedSkillsToImprove: map['cachedSkillsToImprove'] != null
+          ? List<Map<String, dynamic>>.from(
+              (map['cachedSkillsToImprove'] as List).map((e) => Map<String, dynamic>.from(e)))
+          : null,
+      cachedMissingSkills: map['cachedMissingSkills'] != null
+          ? List<Map<String, dynamic>>.from(
+              (map['cachedMissingSkills'] as List).map((e) => Map<String, dynamic>.from(e)))
+          : null,
+      analysisTimestamp: map['analysisTimestamp'] != null 
+          ? DateTime.parse(map['analysisTimestamp']) 
+          : null,
     );
   }
 
@@ -64,6 +93,12 @@ class UserModel {
       'isProfileComplete': isProfileComplete,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': DateTime.now().toIso8601String(),
+      // Cached analysis
+      'cachedMatchPercentage': cachedMatchPercentage,
+      'cachedProficientSkills': cachedProficientSkills,
+      'cachedSkillsToImprove': cachedSkillsToImprove,
+      'cachedMissingSkills': cachedMissingSkills,
+      'analysisTimestamp': analysisTimestamp?.toIso8601String(),
     };
   }
 
@@ -76,6 +111,11 @@ class UserModel {
     Map<String, String>? skills,
     String? selectedJobRole,
     bool? isProfileComplete,
+    int? cachedMatchPercentage,
+    List<Map<String, dynamic>>? cachedProficientSkills,
+    List<Map<String, dynamic>>? cachedSkillsToImprove,
+    List<Map<String, dynamic>>? cachedMissingSkills,
+    DateTime? analysisTimestamp,
   }) {
     return UserModel(
       uid: uid,
@@ -90,6 +130,11 @@ class UserModel {
       isProfileComplete: isProfileComplete ?? this.isProfileComplete,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
+      cachedMatchPercentage: cachedMatchPercentage ?? this.cachedMatchPercentage,
+      cachedProficientSkills: cachedProficientSkills ?? this.cachedProficientSkills,
+      cachedSkillsToImprove: cachedSkillsToImprove ?? this.cachedSkillsToImprove,
+      cachedMissingSkills: cachedMissingSkills ?? this.cachedMissingSkills,
+      analysisTimestamp: analysisTimestamp ?? this.analysisTimestamp,
     );
   }
 }

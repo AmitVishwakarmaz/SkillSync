@@ -558,5 +558,222 @@ class LearningResourcesData {
         estimatedHours: 60,
       ),
     ],
+    
+    // ===== New Skills (synced with backend) =====
+    'rest_api': [
+      LearningResource(
+        name: 'REST API Tutorial',
+        type: 'Tutorial',
+        url: 'https://restfulapi.net/',
+        difficulty: 'beginner',
+        estimatedHours: 5,
+      ),
+      LearningResource(
+        name: 'Building REST APIs - Traversy Media',
+        type: 'Video',
+        url: 'https://www.youtube.com/watch?v=0oXYLzuucwE',
+        difficulty: 'intermediate',
+        estimatedHours: 6,
+      ),
+    ],
+    'mongodb': [
+      LearningResource(
+        name: 'MongoDB University',
+        type: 'Course',
+        url: 'https://university.mongodb.com/',
+        difficulty: 'beginner',
+        estimatedHours: 15,
+      ),
+      LearningResource(
+        name: 'MongoDB Crash Course - Traversy Media',
+        type: 'Video',
+        url: 'https://www.youtube.com/watch?v=-56x56UppqQ',
+        difficulty: 'beginner',
+        estimatedHours: 1,
+      ),
+    ],
+    'oop': [
+      LearningResource(
+        name: 'OOP Concepts - Programming with Mosh',
+        type: 'Video',
+        url: 'https://www.youtube.com/watch?v=pTB0EiLXUC8',
+        difficulty: 'beginner',
+        estimatedHours: 1,
+      ),
+      LearningResource(
+        name: 'Object-Oriented Design - Coursera',
+        type: 'Course',
+        url: 'https://www.coursera.org/learn/object-oriented-design',
+        difficulty: 'intermediate',
+        estimatedHours: 20,
+      ),
+    ],
+    'system_design': [
+      LearningResource(
+        name: 'System Design Primer - GitHub',
+        type: 'Tutorial',
+        url: 'https://github.com/donnemartin/system-design-primer',
+        difficulty: 'advanced',
+        estimatedHours: 40,
+      ),
+      LearningResource(
+        name: 'Gaurav Sen System Design',
+        type: 'Video',
+        url: 'https://www.youtube.com/playlist?list=PLMCXHnjXnTnvo6alSjVkgxV-VH6EPyvoX',
+        difficulty: 'intermediate',
+        estimatedHours: 15,
+      ),
+    ],
+    'pandas': [
+      LearningResource(
+        name: 'Pandas Tutorial - Corey Schafer',
+        type: 'Video',
+        url: 'https://www.youtube.com/watch?v=ZyhVh-qRZPA',
+        difficulty: 'beginner',
+        estimatedHours: 5,
+      ),
+      LearningResource(
+        name: 'Data Analysis with Pandas - Kaggle',
+        type: 'Tutorial',
+        url: 'https://www.kaggle.com/learn/pandas',
+        difficulty: 'beginner',
+        estimatedHours: 4,
+      ),
+    ],
+    'numpy': [
+      LearningResource(
+        name: 'NumPy Tutorial - freeCodeCamp',
+        type: 'Video',
+        url: 'https://www.youtube.com/watch?v=QUT1VHiLmmI',
+        difficulty: 'beginner',
+        estimatedHours: 1,
+      ),
+      LearningResource(
+        name: 'NumPy Official Documentation',
+        type: 'Documentation',
+        url: 'https://numpy.org/doc/stable/user/absolute_beginners.html',
+        difficulty: 'beginner',
+        estimatedHours: 5,
+      ),
+    ],
+    'data_viz': [
+      LearningResource(
+        name: 'Data Visualization with Python - freeCodeCamp',
+        type: 'Video',
+        url: 'https://www.youtube.com/watch?v=a9UrKTVEeZA',
+        difficulty: 'beginner',
+        estimatedHours: 5,
+      ),
+      LearningResource(
+        name: 'Matplotlib Tutorial - Corey Schafer',
+        type: 'Video',
+        url: 'https://www.youtube.com/playlist?list=PL-osiE80TeTvipOqomVEeZ1HRrcEvtZB_',
+        difficulty: 'beginner',
+        estimatedHours: 3,
+      ),
+    ],
+    'tensorflow': [
+      LearningResource(
+        name: 'TensorFlow Official Tutorial',
+        type: 'Documentation',
+        url: 'https://www.tensorflow.org/tutorials',
+        difficulty: 'intermediate',
+        estimatedHours: 20,
+      ),
+      LearningResource(
+        name: 'TensorFlow 2.0 Complete Course',
+        type: 'Video',
+        url: 'https://www.youtube.com/watch?v=tPYj3fFJGjk',
+        difficulty: 'intermediate',
+        estimatedHours: 10,
+      ),
+    ],
+    'machine_learning': [
+      LearningResource(
+        name: 'Machine Learning - Andrew Ng (Coursera)',
+        type: 'Course',
+        url: 'https://www.coursera.org/learn/machine-learning',
+        difficulty: 'intermediate',
+        estimatedHours: 60,
+      ),
+      LearningResource(
+        name: 'ML Crash Course - Google',
+        type: 'Course',
+        url: 'https://developers.google.com/machine-learning/crash-course',
+        difficulty: 'beginner',
+        estimatedHours: 15,
+      ),
+      LearningResource(
+        name: 'ML with Python - freeCodeCamp',
+        type: 'Video',
+        url: 'https://www.youtube.com/watch?v=tPYj3fFJGjk',
+        difficulty: 'beginner',
+        estimatedHours: 10,
+      ),
+    ],
+    'agile': [
+      LearningResource(
+        name: 'Agile Fundamentals - Coursera',
+        type: 'Course',
+        url: 'https://www.coursera.org/learn/agile-software-development',
+        difficulty: 'beginner',
+        estimatedHours: 10,
+      ),
+      LearningResource(
+        name: 'Agile Crash Course',
+        type: 'Video',
+        url: 'https://www.youtube.com/watch?v=Z9QbYZh1YXY',
+        difficulty: 'beginner',
+        estimatedHours: 1,
+      ),
+    ],
+    'gcp': [
+      LearningResource(
+        name: 'Google Cloud Fundamentals',
+        type: 'Course',
+        url: 'https://www.coursera.org/learn/gcp-fundamentals',
+        difficulty: 'beginner',
+        estimatedHours: 15,
+      ),
+      LearningResource(
+        name: 'GCP Tutorial - freeCodeCamp',
+        type: 'Video',
+        url: 'https://www.youtube.com/watch?v=UGRDM86MBIQ',
+        difficulty: 'beginner',
+        estimatedHours: 5,
+      ),
+    ],
+    'flask': [
+      LearningResource(
+        name: 'Flask Mega Tutorial',
+        type: 'Tutorial',
+        url: 'https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world',
+        difficulty: 'intermediate',
+        estimatedHours: 20,
+      ),
+      LearningResource(
+        name: 'Flask REST API Course - freeCodeCamp',
+        type: 'Video',
+        url: 'https://www.youtube.com/watch?v=GMppyAPbLYk',
+        difficulty: 'intermediate',
+        estimatedHours: 5,
+      ),
+    ],
+    'django': [
+      LearningResource(
+        name: 'Django Official Tutorial',
+        type: 'Documentation',
+        url: 'https://docs.djangoproject.com/en/stable/intro/tutorial01/',
+        difficulty: 'beginner',
+        estimatedHours: 8,
+      ),
+      LearningResource(
+        name: 'Django for Beginners - freeCodeCamp',
+        type: 'Video',
+        url: 'https://www.youtube.com/watch?v=F5mRW0jo-U4',
+        difficulty: 'beginner',
+        estimatedHours: 4,
+      ),
+    ],
   };
 }

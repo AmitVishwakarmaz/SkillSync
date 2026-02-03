@@ -72,6 +72,24 @@ class FirestoreService {
     });
   }
 
+  /// Save skill analysis result (from backend ML model)
+  Future<void> saveSkillAnalysis({
+    required String uid,
+    required int matchPercentage,
+    required List<Map<String, dynamic>> proficientSkills,
+    required List<Map<String, dynamic>> skillsToImprove,
+    required List<Map<String, dynamic>> missingSkills,
+  }) async {
+    await _usersCollection.doc(uid).update({
+      'cachedMatchPercentage': matchPercentage,
+      'cachedProficientSkills': proficientSkills,
+      'cachedSkillsToImprove': skillsToImprove,
+      'cachedMissingSkills': missingSkills,
+      'analysisTimestamp': DateTime.now().toIso8601String(),
+      'updatedAt': DateTime.now().toIso8601String(),
+    });
+  }
+
   /// Stream user data for real-time updates
   Stream<UserModel?> streamUser(String uid) {
     return _usersCollection.doc(uid).snapshots().map((doc) {

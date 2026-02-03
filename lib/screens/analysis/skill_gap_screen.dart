@@ -1,9 +1,10 @@
-/// Skill gap analysis screen - Uses Local Flutter Data
+/// Skill gap analysis screen - Uses Backend ML API with Local Fallback
 library;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/roadmap_service.dart';
@@ -20,7 +21,9 @@ class SkillGapScreen extends StatefulWidget {
 
 class _SkillGapScreenState extends State<SkillGapScreen> {
   SkillGapResult? _analysisResult;
+  Map<String, dynamic>? _apiResult; // Store API result for ML-based score
   bool _isLoading = true;
+  bool _usedBackendApi = false; // Track if we used backend API
   String? _errorMessage;
 
   @override
@@ -41,13 +44,58 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
           debugPrint('SkillGapScreen - User skills: ${user.skills}');
           debugPrint('SkillGapScreen - Target role: ${user.selectedJobRole}');
           
-          // Use local RoadmapService instead of Flask API
+          // Try backend API first (uses ML model for score prediction)
+          try {
+            debugPrint('SkillGapScreen - Trying Backend API...');
+            final apiResult = await ApiService.analyzeGap(
+              userSkills: user.skills,
+              targetRole: user.selectedJobRole!,
+            );
+            
+            debugPrint('SkillGapScreen - Backend API Response:');
+            debugPrint('  match_percentage (ML): ${apiResult['match_percentage']}');
+            debugPrint('  missing_skills: ${(apiResult['missing_skills'] as List?)?.length ?? 0}');
+            debugPrint('  skills_to_improve: ${(apiResult['skills_to_improve'] as List?)?.length ?? 0}');
+            debugPrint('  proficient_skills: ${(apiResult['proficient_skills'] as List?)?.length ?? 0}');
+            
+            // Convert API result to SkillGapResult format
+            final analysis = _convertApiToSkillGapResult(apiResult, user.selectedJobRole!);
+            
+            // Save analysis to Firebase for dashboard to use
+            try {
+              await firestoreService.saveSkillAnalysis(
+                uid: authService.currentUser!.uid,
+                matchPercentage: analysis.matchPercentage,
+                proficientSkills: analysis.proficientSkills,
+                skillsToImprove: analysis.skillsToImprove,
+                missingSkills: analysis.missingSkills,
+              );
+              debugPrint('SkillGapScreen - Analysis saved to Firebase');
+            } catch (saveError) {
+              debugPrint('SkillGapScreen - Failed to save analysis: $saveError');
+            }
+            
+            if (mounted) {
+              setState(() {
+                _analysisResult = analysis;
+                _apiResult = apiResult;
+                _usedBackendApi = true;
+                _isLoading = false;
+              });
+            }
+            return;
+          } catch (apiError) {
+            debugPrint('SkillGapScreen - Backend API failed: $apiError');
+            debugPrint('SkillGapScreen - Falling back to local calculation...');
+          }
+          
+          // Fallback: Use local RoadmapService
           final analysis = RoadmapService.analyzeSkillGap(
             userSkills: user.skills,
             targetRoleId: user.selectedJobRole!,
           );
           
-          debugPrint('SkillGapScreen - Local Analysis:');
+          debugPrint('SkillGapScreen - Local Analysis (Fallback):');
           debugPrint('  match_percentage: ${analysis.matchPercentage}');
           debugPrint('  missing_skills: ${analysis.missingSkills.length}');
           debugPrint('  skills_to_improve: ${analysis.skillsToImprove.length}');
@@ -56,6 +104,7 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
           if (mounted) {
             setState(() {
               _analysisResult = analysis;
+              _usedBackendApi = false;
               _isLoading = false;
             });
           }
@@ -77,6 +126,32 @@ class _SkillGapScreenState extends State<SkillGapScreen> {
         });
       }
     }
+  }
+
+  /// Convert API response to SkillGapResult for consistent UI handling
+  SkillGapResult _convertApiToSkillGapResult(Map<String, dynamic> apiResult, String targetRoleId) {
+    final targetRole = apiResult['target_role'] as Map<String, dynamic>? ?? {};
+    final proficientSkills = (apiResult['proficient_skills'] as List?)
+        ?.map((s) => Map<String, dynamic>.from(s as Map))
+        .toList() ?? [];
+    final skillsToImprove = (apiResult['skills_to_improve'] as List?)
+        ?.map((s) => Map<String, dynamic>.from(s as Map))
+        .toList() ?? [];
+    final missingSkills = (apiResult['missing_skills'] as List?)
+        ?.map((s) => Map<String, dynamic>.from(s as Map))
+        .toList() ?? [];
+    final summary = apiResult['summary'] as Map<String, dynamic>? ?? {};
+
+    return SkillGapResult(
+      targetRoleId: targetRole['id']?.toString() ?? targetRoleId,
+      targetRoleName: targetRole['name']?.toString() ?? 'Target Role',
+      targetRoleIcon: targetRole['icon']?.toString() ?? '💼',
+      matchPercentage: (apiResult['match_percentage'] as num?)?.toInt() ?? 0,
+      proficientSkills: proficientSkills,
+      skillsToImprove: skillsToImprove,
+      missingSkills: missingSkills,
+      summary: summary,
+    );
   }
 
   @override
